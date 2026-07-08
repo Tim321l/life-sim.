@@ -50,7 +50,7 @@ tests/
 | Phase | Description | Status |
 |---|---|---|
 | 0 | Repository, CI & quality gates | ✅ Done |
-| 1 | Core domain + persistence | ⬜ Not started |
+| 1 | Core domain + persistence | ✅ Done |
 | 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ⬜ Not started |
 | 3 | Multi-era pools + inflation scaling | ⬜ Not started |
 | 4 | Legacy system (multi-generation) | ⬜ Not started |
