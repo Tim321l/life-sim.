@@ -1,0 +1,30 @@
+## .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+
+## Test/coverage output
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+## IDE
+.vs/
+.vscode/
+*.swp
+.idea/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Avalonia / Blazor publish output
+publish/
+*.log
+
+## Local save data (dev-time playtesting)
+saves/

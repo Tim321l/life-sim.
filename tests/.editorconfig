@@ -1,0 +1,5 @@
+# Relax identifier-naming enforcement for test method names, which
+# conventionally use PascalCase_Segments_Describing_The_Scenario.
+[*.cs]
+dotnet_naming_rule.no_snake_case_identifiers.severity = suggestion
+dotnet_diagnostic.CA1707.severity = none

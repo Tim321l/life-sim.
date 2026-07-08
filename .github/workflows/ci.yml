@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  COVERAGE_GATE: ${{ vars.COVERAGE_GATE }}
+  COVERAGE_THRESHOLD: 85
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (from global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (warnings as errors)
+        run: dotnet build --no-restore -warnaserror
+
+      - name: Test with coverage
+        run: >
+          dotnet test --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Enforce Core coverage threshold
+        if: env.COVERAGE_GATE == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          COVERAGE_FILE=$(find ./TestResults -name 'coverage.cobertura.xml' | head -n 1)
+          if [ -z "$COVERAGE_FILE" ]; then
+            echo "::error::No coverage report found but COVERAGE_GATE=true"
+            exit 1
+          fi
+          LINE_RATE=$(grep -m1 -oP 'line-rate="\K[0-9.]+' "$COVERAGE_FILE")
+          PCT=$(awk -v r="$LINE_RATE" 'BEGIN { printf "%.2f", r * 100 }')
+          echo "HKLifeSim.Core line coverage: ${PCT}% (threshold: ${COVERAGE_THRESHOLD}%)"
+          awk -v pct="$PCT" -v threshold="$COVERAGE_THRESHOLD" 'BEGIN { exit !(pct + 0 >= threshold + 0) }' \
+            || { echo "::error::Coverage ${PCT}% is below the ${COVERAGE_THRESHOLD}% gate"; exit 1; }
+
+      - name: Validate content (Phase 2+)
+        shell: bash
+        run: |
+          if [ -f src/HKLifeSim.Cli/HKLifeSim.Cli.csproj ]; then
+            dotnet run --project src/HKLifeSim.Cli --no-build -- --validate-content
+          else
+            echo "HKLifeSim.Cli not present yet — content validation activates in Phase 2."
+          fi
+
+      - name: Simulation fuzz run (Phase 2+)
+        shell: bash
+        run: |
+          if [ -f src/HKLifeSim.Cli/HKLifeSim.Cli.csproj ]; then
+            for era in 1960s 1980s 2000s 2024plus; do
+              if grep -q "\"eraId\": \"$era\"" data/eras.json 2>/dev/null; then
+                for seed in $(seq 1 50); do
+                  dotnet run --project src/HKLifeSim.Cli --no-build -- --era "$era" --seed "$seed" --auto > /dev/null
+                done
+              fi
+            done
+          else
+            echo "HKLifeSim.Cli not present yet — simulation fuzz job activates in Phase 2."
+          fi

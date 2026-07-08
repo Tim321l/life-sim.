@@ -1,0 +1,41 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.cs]
+indent_size = 4
+
+[*.{json,yml,yaml,editorconfig}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# ---- Language conventions ----
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_namespace_declarations = file_scoped:error
+csharp_using_directive_placement = outside_namespace:error
+dotnet_style_readonly_field = true:error
+dotnet_diagnostic.IDE0005.severity = error
+
+# ---- Naming: no snake_case identifiers in C# (test method names may use
+# PascalCase_Segments_LikeThis; see tests/.editorconfig override) ----
+dotnet_naming_symbols.all_members.applicable_kinds = *
+dotnet_naming_symbols.all_members.applicable_accessibilities = *
+dotnet_naming_style.no_snake_case.capitalization = pascal_case
+dotnet_naming_rule.no_snake_case_identifiers.symbols = all_members
+dotnet_naming_rule.no_snake_case_identifiers.style = no_snake_case
+dotnet_naming_rule.no_snake_case_identifiers.severity = error
+
+dotnet_diagnostic.CA1707.severity = warning
