@@ -1,18 +1,22 @@
 using HKLifeSim.Core.Domain;
+using HKLifeSim.Core.Systems;
 
 namespace HKLifeSim.Core.Events;
 
 public sealed class EventEngine
 {
     private readonly IReadOnlyList<GameEvent> _pool;
+    private readonly EraConfig _era;
     private readonly Random _random;
     private string? _pendingFollowUpId;
 
-    public EventEngine(IReadOnlyList<GameEvent> pool, int seed)
+    public EventEngine(IReadOnlyList<GameEvent> pool, EraConfig era, int seed)
     {
         ArgumentNullException.ThrowIfNull(pool);
+        ArgumentNullException.ThrowIfNull(era);
 
         _pool = pool;
+        _era = era;
         _random = new Random(seed);
     }
 
@@ -54,7 +58,8 @@ public sealed class EventEngine
         var choice = gameEvent.Choices.FirstOrDefault(c => c.Id == choiceId)
             ?? throw new ArgumentException($"Unknown choice id '{choiceId}' for event '{gameEvent.Id}'.", nameof(choiceId));
 
-        state.Stats = state.Stats.ApplyDelta(choice.Effects);
+        var effects = choice.AbsoluteMoney ? choice.Effects : InflationScaler.Scale(choice.Effects, _era);
+        state.Stats = state.Stats.ApplyDelta(effects);
         state.EventHistory.Add(gameEvent.Id);
 
         foreach (var flag in choice.FlagsToSet)

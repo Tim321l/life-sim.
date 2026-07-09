@@ -6,12 +6,22 @@ namespace HKLifeSim.Core.Tests;
 
 public sealed class EventEngineTests
 {
+    private static readonly EraConfig TestEra = new(
+        EraId: "2024plus",
+        StartYear: 2024,
+        EndYear: 2045,
+        InflationMultiplier: 1.0m,
+        AverageHousePrice: 8_000_000m,
+        StartingMoney: 20_000,
+        AvailableCareerTracks: ["tech"],
+        EventPoolFiles: ["events_2024plus.json"]);
+
     [Fact]
     public void SelectNextEvent_Weighted_Selection_Converges_To_Expected_Ratio_Over_Many_Trials()
     {
         var eventA = MakeEvent("a", 18, 18, weight: 70);
         var eventB = MakeEvent("b", 18, 18, weight: 30);
-        var engine = new EventEngine([eventA, eventB], seed: 12345);
+        var engine = new EventEngine([eventA, eventB], TestEra, seed: 12345);
         var state = CreateState(age: 18);
 
         const int trials = 10_000;
@@ -33,7 +43,7 @@ public sealed class EventEngineTests
     {
         var once = MakeEvent("once", 18, 18, weight: 100, isUnique: true);
         var fallback = MakeEvent("generic_daily_life_2024plus", 0, 120, weight: 1);
-        var engine = new EventEngine([once, fallback], seed: 1);
+        var engine = new EventEngine([once, fallback], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         var first = engine.SelectNextEvent(state);
@@ -51,7 +61,7 @@ public sealed class EventEngineTests
     {
         var gated = MakeEvent("gated", 18, 18, weight: 100, conditions: [new EventCondition { Op = "hasFlag", Value = "married" }]);
         var fallback = MakeEvent("generic_daily_life_2024plus", 0, 120, weight: 1);
-        var engine = new EventEngine([gated, fallback], seed: 1);
+        var engine = new EventEngine([gated, fallback], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         engine.SelectNextEvent(state).Id.Should().Be("generic_daily_life_2024plus");
@@ -66,7 +76,7 @@ public sealed class EventEngineTests
     {
         var narrow = MakeEvent("narrow", 40, 41, weight: 100);
         var fallback = MakeEvent("generic_daily_life_2024plus", 0, 120, weight: 1);
-        var engine = new EventEngine([narrow, fallback], seed: 1);
+        var engine = new EventEngine([narrow, fallback], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         engine.SelectNextEvent(state).Id.Should().Be("generic_daily_life_2024plus");
@@ -84,7 +94,7 @@ public sealed class EventEngineTests
             isUnique: true,
             choices: [new EventChoice { Id = "go", Text = "go", FollowUpEventId = "step2" }]);
         var fallback = MakeEvent("generic_daily_life_2024plus", 0, 120, weight: 1);
-        var engine = new EventEngine([step1, step2, fallback], seed: 1);
+        var engine = new EventEngine([step1, step2, fallback], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         var first = engine.SelectNextEvent(state);
@@ -106,7 +116,7 @@ public sealed class EventEngineTests
             isUnique: true,
             choices: [new EventChoice { Id = "go", Text = "go", FollowUpEventId = "future" }]);
         var fallback = MakeEvent("generic_daily_life_2024plus", 0, 120, weight: 1);
-        var engine = new EventEngine([trigger, future, fallback], seed: 1);
+        var engine = new EventEngine([trigger, future, fallback], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         engine.ApplyChoice(state, engine.SelectNextEvent(state), "go");
@@ -129,7 +139,7 @@ public sealed class EventEngineTests
             FlagsToSet = ["foo"],
         };
         var evt = MakeEvent("e1", 18, 18, weight: 100, choices: [choice]);
-        var engine = new EventEngine([evt], seed: 1);
+        var engine = new EventEngine([evt], TestEra, seed: 1);
         var state = CreateState(age: 18);
         var before = state.Stats;
 
@@ -145,7 +155,7 @@ public sealed class EventEngineTests
     public void ApplyChoice_Throws_For_An_Unknown_Choice_Id()
     {
         var evt = MakeEvent("e1", 18, 18, weight: 100);
-        var engine = new EventEngine([evt], seed: 1);
+        var engine = new EventEngine([evt], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         var act = () => engine.ApplyChoice(state, evt, "does-not-exist");
@@ -158,13 +168,43 @@ public sealed class EventEngineTests
     {
         var choice = new EventChoice { Id = "c1", Text = "t", Effects = new StatDelta(Stress: 200) };
         var evt = MakeEvent("e1", 18, 18, weight: 100, choices: [choice]);
-        var engine = new EventEngine([evt], seed: 1);
+        var engine = new EventEngine([evt], TestEra, seed: 1);
         var state = CreateState(age: 18);
 
         engine.ApplyChoice(state, evt, "c1");
 
         state.IsAlive.Should().BeFalse();
         state.DeathCause.Should().Be("stress_breakdown");
+    }
+
+    [Fact]
+    public void ApplyChoice_Scales_Money_By_The_Era_Inflation_Multiplier()
+    {
+        var lowMultiplierEra = TestEra with { InflationMultiplier = 0.02m };
+        var choice = new EventChoice { Id = "c1", Text = "t", Effects = new StatDelta(Money: -100) };
+        var evt = MakeEvent("e1", 18, 18, weight: 100, choices: [choice]);
+        var engine = new EventEngine([evt], lowMultiplierEra, seed: 1);
+        var state = CreateState(age: 18);
+        var before = state.Stats;
+
+        engine.ApplyChoice(state, evt, "c1");
+
+        state.Stats.Money.Should().Be(before.Money - 2);
+    }
+
+    [Fact]
+    public void ApplyChoice_Bypasses_Inflation_Scaling_When_The_Choice_Sets_AbsoluteMoney()
+    {
+        var lowMultiplierEra = TestEra with { InflationMultiplier = 0.02m };
+        var choice = new EventChoice { Id = "c1", Text = "t", Effects = new StatDelta(Money: -100), AbsoluteMoney = true };
+        var evt = MakeEvent("e1", 18, 18, weight: 100, choices: [choice]);
+        var engine = new EventEngine([evt], lowMultiplierEra, seed: 1);
+        var state = CreateState(age: 18);
+        var before = state.Stats;
+
+        engine.ApplyChoice(state, evt, "c1");
+
+        state.Stats.Money.Should().Be(before.Money - 100);
     }
 
     [Fact]
@@ -176,7 +216,7 @@ public sealed class EventEngineTests
             18,
             weight: 100,
             choices: [new EventChoice { Id = "a", Text = "a" }, new EventChoice { Id = "b", Text = "b" }]);
-        var engine = new EventEngine([evt], seed: 1);
+        var engine = new EventEngine([evt], TestEra, seed: 1);
 
         var picked = engine.PickRandomChoiceId(evt);
 

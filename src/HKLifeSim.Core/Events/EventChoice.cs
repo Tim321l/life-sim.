@@ -13,4 +13,6 @@ public sealed record EventChoice
     public IReadOnlyList<string> FlagsToSet { get; init; } = [];
 
     public string? FollowUpEventId { get; init; }
+
+    public bool AbsoluteMoney { get; init; }
 }

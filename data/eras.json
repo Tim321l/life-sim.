@@ -2,6 +2,36 @@
   "schemaVersion": 1,
   "eras": [
     {
+      "eraId": "1960s",
+      "startYear": 1960,
+      "endYear": 1979,
+      "inflationMultiplier": 0.02,
+      "averageHousePrice": 40000,
+      "startingMoney": 300,
+      "availableCareerTracks": ["factory", "trading", "fishing", "tailor"],
+      "eventPoolFiles": ["events_1960s.json"]
+    },
+    {
+      "eraId": "1980s",
+      "startYear": 1980,
+      "endYear": 1999,
+      "inflationMultiplier": 0.15,
+      "averageHousePrice": 600000,
+      "startingMoney": 3000,
+      "availableCareerTracks": ["manufacturing", "finance", "civil_service", "retail"],
+      "eventPoolFiles": ["events_1980s.json"]
+    },
+    {
+      "eraId": "2000s",
+      "startYear": 2000,
+      "endYear": 2023,
+      "inflationMultiplier": 0.6,
+      "averageHousePrice": 4500000,
+      "startingMoney": 10000,
+      "availableCareerTracks": ["tech", "finance", "civil_service", "logistics", "creative"],
+      "eventPoolFiles": ["events_2000s.json"]
+    },
+    {
       "eraId": "2024plus",
       "startYear": 2024,
       "endYear": 2045,

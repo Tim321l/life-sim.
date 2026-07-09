@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 1,
+  "eraId": "1960s",
+  "events": [
+    {
+      "id": "leave_school_start_work_1960s",
+      "minAge": 18,
+      "maxAge": 18,
+      "weight": 100,
+      "isUnique": true,
+      "category": "education",
+      "title": "小學畢業，出嚟揾食",
+      "body": "屋企話冇錢再供你讀書，你都夠鐘出嚟揾食，幫補下屋企。",
+      "choices": [
+        {
+          "id": "become_apprentice",
+          "text": "跟師傅學手藝",
+          "effects": { "money": 2000, "stress": 8, "education": 5 },
+          "flagsToSet": ["apprentice"]
+        },
+        {
+          "id": "factory_girl",
+          "text": "入山寨廠做工人",
+          "effects": { "money": 2500, "stress": 7, "education": -3 },
+          "flagsToSet": ["factory_worker"]
+        },
+        {
+          "id": "help_at_home",
+          "text": "留喺屋企湊細佬妹",
+          "effects": { "stress": 5, "familyBond": 8, "education": -5 },
+          "flagsToSet": ["housewife_helper"]
+        }
+      ]
+    },
+    {
+      "id": "night_school_1960s",
+      "minAge": 18,
+      "maxAge": 30,
+      "weight": 40,
+      "category": "education",
+      "title": "夜校掃盲",
+      "body": "日頭做嘢辛苦，夜晚仲要捱眼瞓去夜校讀書識字。",
+      "conditions": [
+        { "op": "hasFlag", "value": "factory_worker" }
+      ],
+      "choices": [
+        {
+          "id": "attend_night_school",
+          "text": "堅持去夜校",
+          "effects": { "money": -1000, "stress": 7, "education": 15 }
+        },
+        {
+          "id": "too_tired",
+          "text": "太攰唔去喇",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "literacy_class_1960s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 30,
+      "category": "education",
+      "title": "識字班",
+      "body": "街坊會開咗個義務識字班，你都想去學多啲字。",
+      "choices": [
+        {
+          "id": "join_class",
+          "text": "去學識字",
+          "effects": { "stress": 5, "education": 10 }
+        },
+        {
+          "id": "skip_it",
+          "text": "冇時間去",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "become_master_craftsman_1960s",
+      "minAge": 22,
+      "maxAge": 40,
+      "weight": 60,
+      "isUnique": true,
+      "category": "career",
+      "title": "出師做師傅",
+      "body": "跟咗師傅幾年，終於學滿師，可以自己接生意。",
+      "conditions": [
+        { "op": "hasFlag", "value": "apprentice" }
+      ],
+      "choices": [
+        {
+          "id": "go_independent",
+          "text": "自己出嚟接生意",
+          "effects": { "money": 5000, "stress": 7, "reputation": 10 },
+          "flagsToSet": ["master_craftsman"]
+        },
+        {
+          "id": "stay_with_master",
+          "text": "留低幫師傅手",
+          "effects": { "stress": 3, "familyBond": 3 }
+        }
+      ]
+    },
+    {
+      "id": "layoff_factory_1960s",
+      "minAge": 20,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "山寨廠執笠",
+      "body": "廠佬話生意唔好做，山寨廠說執就執，你手停口停。",
+      "conditions": [
+        { "op": "hasFlag", "value": "factory_worker" }
+      ],
+      "choices": [
+        {
+          "id": "find_new_factory",
+          "text": "即刻搵過第二間廠",
+          "effects": { "money": -1000, "stress": 10 }
+        },
+        {
+          "id": "go_street_stall",
+          "text": "轉行擺檔口",
+          "effects": { "money": 1000, "stress": 7 }
+        }
+      ]
+    },
+    {
+      "id": "street_stall_helper_1960s",
+      "minAge": 18,
+      "maxAge": 50,
+      "weight": 35,
+      "category": "career",
+      "title": "大排檔幫工",
+      "body": "灣仔大排檔請人，你去幫手洗碗兼企定。",
+      "choices": [
+        {
+          "id": "work_hard",
+          "text": "落力做，博加人工",
+          "effects": { "money": 2500, "stress": 7, "health": -3 }
+        },
+        {
+          "id": "just_get_by",
+          "text": "求求其其做份工",
+          "effects": { "money": 1500, "stress": 5 }
+        }
+      ]
+    },
+    {
+      "id": "open_small_shop_1960s",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "開舖做小生意",
+      "body": "儲落嘅少少錢，你諗住喺街市開間小舖頭。",
+      "choices": [
+        {
+          "id": "open_shop",
+          "text": "落本開舖",
+          "effects": { "money": -6000, "stress": 8, "reputation": 5 }
+        },
+        {
+          "id": "stay_employed",
+          "text": "打份工穩陣啲",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "become_trader_1960s",
+      "minAge": 20,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "career",
+      "title": "入行做貿易",
+      "body": "有相熟朋友做南北貨貿易，問你有冇興趣入行。",
+      "choices": [
+        {
+          "id": "join_trading",
+          "text": "入行做貿易",
+          "effects": { "money": 3000, "stress": 7, "reputation": 5 },
+          "flagsToSet": ["trader"]
+        },
+        {
+          "id": "not_interested",
+          "text": "唔想博",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "squatter_hut_life_1960s",
+      "minAge": 18,
+      "maxAge": 55,
+      "weight": 40,
+      "category": "housing",
+      "title": "木屋區生活",
+      "body": "一家幾口擠喺山邊搭嘅木屋，落雨就驚漏水驚山泥傾瀉。",
+      "choices": [
+        {
+          "id": "patch_up_hut",
+          "text": "自己執下間屋",
+          "effects": { "money": -500, "stress": 8, "familyBond": 5 }
+        },
+        {
+          "id": "endure_it",
+          "text": "捱住算",
+          "effects": { "stress": 7, "health": -3 }
+        }
+      ]
+    },
+    {
+      "id": "squatter_fire_1960s",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 15,
+      "category": "housing",
+      "title": "木屋區大火",
+      "body": "隔籬木屋一個煮飯爐火頭失控，火勢好快就蔓延過嚟。",
+      "choices": [
+        {
+          "id": "flee_and_rebuild",
+          "text": "走佬保命，之後再算",
+          "effects": { "money": -3000, "stress": 13, "health": -5 }
+        },
+        {
+          "id": "fight_the_fire",
+          "text": "同街坊一齊救火",
+          "effects": { "money": -1000, "stress": 10, "health": -8, "familyBond": 8 }
+        }
+      ]
+    },
+    {
+      "id": "save_for_tong_lau_1960s",
+      "minAge": 20,
+      "maxAge": 45,
+      "weight": 40,
+      "isUnique": true,
+      "category": "housing",
+      "title": "儲錢買唐樓",
+      "body": "睇住木屋區日日提心吊膽，你下定決心要儲錢買層唐樓。",
+      "choices": [
+        {
+          "id": "save_hard",
+          "text": "死慳死抵儲錢",
+          "effects": { "money": -2000, "stress": 6 },
+          "flagsToSet": ["saving_for_tong_lau"],
+          "followUpEventId": "buy_tong_lau_1960s"
+        },
+        {
+          "id": "give_up_saving",
+          "text": "算把啦，捱得就捱",
+          "effects": { "money": 1000, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "buy_tong_lau_1960s",
+      "minAge": 20,
+      "maxAge": 48,
+      "weight": 100,
+      "isUnique": true,
+      "category": "housing",
+      "title": "落訂買唐樓",
+      "body": "睇中一間舊唐樓，業主肯平啲賣俾你，你即刻同佢落訂。",
+      "choices": [
+        {
+          "id": "sign_the_deal",
+          "text": "落訂買樓",
+          "effects": { "money": -300000, "stress": 10, "familyBond": 8 },
+          "flagsToSet": ["legacy_owns_flat"]
+        },
+        {
+          "id": "back_out",
+          "text": "諗諗先",
+          "effects": { "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "arranged_marriage_1960s",
+      "minAge": 20,
+      "maxAge": 35,
+      "weight": 45,
+      "isUnique": true,
+      "category": "relationship",
+      "title": "父母之命結婚",
+      "body": "阿媽幫你搵咗個媒人相睇，話呢頭婚事幾好，叫你唔好諗咁多。",
+      "choices": [
+        {
+          "id": "accept_marriage",
+          "text": "聽阿媽話結婚",
+          "effects": { "money": -20000, "stress": 8, "familyBond": 15 },
+          "flagsToSet": ["married"]
+        },
+        {
+          "id": "resist_marriage",
+          "text": "唔肯就範",
+          "effects": { "stress": 10, "familyBond": -8 }
+        }
+      ]
+    },
+    {
+      "id": "raise_siblings_1960s",
+      "minAge": 18,
+      "maxAge": 35,
+      "weight": 40,
+      "category": "relationship",
+      "title": "湊細佬妹",
+      "body": "屋企細路多，做阿姐阿哥嘅你自然要幫手湊大班細佬妹。",
+      "choices": [
+        {
+          "id": "take_care_of_them",
+          "text": "用心湊大佢哋",
+          "effects": { "money": -500, "stress": 7, "familyBond": 12 }
+        },
+        {
+          "id": "just_help_out",
+          "text": "得閒先幫下手",
+          "effects": { "stress": 5, "familyBond": 5 }
+        }
+      ]
+    },
+    {
+      "id": "have_kids_1960s",
+      "minAge": 22,
+      "maxAge": 40,
+      "weight": 40,
+      "category": "relationship",
+      "title": "生仔",
+      "body": "老爺奶奶日日催生，你哋兩公婆都準備好迎接第一個仔女。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "have_the_baby",
+          "text": "迎接新生命",
+          "effects": { "money": -15000, "stress": 10, "familyBond": 20 },
+          "flagsToSet": ["has_kids"]
+        },
+        {
+          "id": "not_yet",
+          "text": "遲啲先",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "water_rationing_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 50,
+      "category": "health",
+      "title": "制水，四日一次供水",
+      "body": "大旱之年，政府宣布制水，四日先開一次水喉，成家人拎住桶排隊等水。",
+      "choices": [
+        {
+          "id": "queue_for_water",
+          "text": "自己去排隊擔水",
+          "effects": { "stress": 6, "health": -3 }
+        },
+        {
+          "id": "buy_water",
+          "text": "俾錢叫人擔水",
+          "effects": { "money": -800, "stress": 5 }
+        }
+      ]
+    },
+    {
+      "id": "infectious_disease_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 20,
+      "category": "health",
+      "title": "傳染病流行",
+      "body": "街坊間流行霍亂，衛生環境又差，人人自危。",
+      "choices": [
+        {
+          "id": "get_vaccinated",
+          "text": "去打防疫針",
+          "effects": { "money": -500, "health": 8, "stress": -2 }
+        },
+        {
+          "id": "avoid_crowds",
+          "text": "盡量少出街",
+          "effects": { "stress": 5, "familyBond": -3 }
+        }
+      ]
+    },
+    {
+      "id": "see_chinese_doctor_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 40,
+      "category": "health",
+      "title": "睇中醫執藥",
+      "body": "身體唔舒服，屋企人帶你去街口中醫執返幾劑藥。",
+      "choices": [
+        {
+          "id": "follow_prescription",
+          "text": "乖乖煲藥食",
+          "effects": { "money": -800, "health": 10, "stress": -2 }
+        },
+        {
+          "id": "skip_medicine",
+          "text": "唔理佢，頂硬上",
+          "effects": { "health": -8 }
+        }
+      ]
+    },
+    {
+      "id": "exhaustion_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 55,
+      "category": "health",
+      "title": "捱壞身子",
+      "body": "日捱夜捱，你開始成日頭暈眼花，屋企人叫你唞下。",
+      "conditions": [
+        { "statName": "Stress", "op": ">=", "value": "70" }
+      ],
+      "choices": [
+        {
+          "id": "take_a_break",
+          "text": "咬牙請假唞一唞",
+          "effects": { "money": -300, "stress": -20, "health": 8 }
+        },
+        {
+          "id": "push_through",
+          "text": "頂硬上，唔敢請假",
+          "effects": { "health": -15, "stress": 3 }
+        }
+      ]
+    },
+    {
+      "id": "refugee_wave_1960s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 20,
+      "category": "hk_flavor",
+      "title": "走難潮湧到",
+      "body": "唔少人由大陸走難嚟到香港，山邊木屋區愈搭愈多，你屋企都多咗幾戶親戚寄住。",
+      "choices": [
+        {
+          "id": "take_in_relatives",
+          "text": "俾親戚暫住",
+          "effects": { "money": -1000, "stress": 10, "familyBond": 10 }
+        },
+        {
+          "id": "keep_distance",
+          "text": "自身難保，愛莫能助",
+          "effects": { "stress": 5, "familyBond": -5 }
+        }
+      ]
+    },
+    {
+      "id": "lie_low_67_riots_1960s",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 15,
+      "category": "hk_flavor",
+      "title": "暴動避風頭",
+      "body": "街上開始有暴動同「土製菠蘿」流言，人心惶惶，你諗住暫時避一避風頭。",
+      "choices": [
+        {
+          "id": "stay_indoors",
+          "text": "留喺屋企唔出街",
+          "effects": { "money": -500, "stress": 8 }
+        },
+        {
+          "id": "keep_working",
+          "text": "照常返工搵食",
+          "effects": { "money": 1000, "stress": 10, "health": -3 }
+        }
+      ]
+    },
+    {
+      "id": "word_flower_lottery_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 25,
+      "category": "hk_flavor",
+      "title": "字花",
+      "body": "街邊字花檔又開檔，你都試下買幾毫子博一博。",
+      "choices": [
+        {
+          "id": "play_and_win",
+          "text": "買字花，博到彩",
+          "effects": { "money": 80, "stress": -5 },
+          "absoluteMoney": true
+        },
+        {
+          "id": "not_interested",
+          "text": "唔賭喇",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "cantonese_opera_comics_1960s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 40,
+      "category": "hk_flavor",
+      "title": "睇大戲睇公仔書",
+      "body": "難得得閒，去戲棚睇大戲，又或者租幾本公仔書慢慢睇，係難得嘅消遣。",
+      "choices": [
+        {
+          "id": "watch_opera",
+          "text": "去睇大戲",
+          "effects": { "money": -200, "stress": -8, "familyBond": 5 }
+        },
+        {
+          "id": "read_comics",
+          "text": "租公仔書睇",
+          "effects": { "money": -50, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "generic_daily_life_1960s",
+      "minAge": 0,
+      "maxAge": 120,
+      "weight": 1,
+      "isUnique": false,
+      "category": "fallback",
+      "title": "尋常一日",
+      "body": "又係平凡嘅一日，捱生捱死揾兩餐，日子照舊噉過。",
+      "choices": [
+        {
+          "id": "rest_at_home",
+          "text": "留喺屋企唞下",
+          "effects": { "stress": -3, "health": 2 }
+        },
+        {
+          "id": "visit_neighbors",
+          "text": "同街坊傾偈",
+          "effects": { "stress": -3, "familyBond": 2 }
+        },
+        {
+          "id": "work_overtime",
+          "text": "加班多做一更",
+          "effects": { "money": 500, "stress": 5 }
+        }
+      ]
+    }
+  ]
+}

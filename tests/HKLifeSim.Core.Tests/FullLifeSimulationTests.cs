@@ -40,7 +40,7 @@ public sealed class FullLifeSimulationTests : IDisposable
         var store = new FileSaveStore(_tempDirectory);
         var manager = new SaveManager(store, TimeProvider.System);
 
-        var engine = new EventEngine(EventPool, seed: 2024);
+        var engine = new EventEngine(EventPool, Era, seed: 2024);
         var lifecycle = new LifecycleSystem(seed: 2024);
         var state = CreateStartingState(seed: 2024);
 
@@ -110,7 +110,7 @@ public sealed class FullLifeSimulationTests : IDisposable
 
     private static GameState PlayFullLife(int seed, out int turns)
     {
-        var engine = new EventEngine(EventPool, seed);
+        var engine = new EventEngine(EventPool, Era, seed);
         var lifecycle = new LifecycleSystem(seed);
         var state = CreateStartingState(seed);
 

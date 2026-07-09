@@ -25,7 +25,9 @@ dotnet run --project src/HKLifeSim.Cli -- --era 2024plus --seed 42 --auto
 dotnet run --project src/HKLifeSim.Cli -- --validate-content
 ```
 
-Omit `--auto` to play interactively (numbered choices read from stdin).
+`--era` accepts `1960s`, `1980s`, `2000s`, or `2024plus`. Omit `--auto` to play
+interactively (numbered choices read from stdin). Event money effects are authored at
+2024plus baseline and automatically scaled per era via `InflationScaler`.
 
 ## Solution layout
 
@@ -54,7 +56,7 @@ tests/
 | 0 | Repository, CI & quality gates | ✅ Done |
 | 1 | Core domain + persistence | ✅ Done |
 | 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ✅ Done |
-| 3 | Multi-era pools + inflation scaling | ⬜ Not started |
+| 3 | Multi-era pools + inflation scaling | ✅ Done |
 | 4 | Legacy system (multi-generation) | ⬜ Not started |
 | 5 | Avalonia desktop UI | ⬜ Not started |
 | 6 | Blazor WASM web UI | ⬜ Not started |

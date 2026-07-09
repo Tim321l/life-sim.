@@ -90,7 +90,7 @@ internal static class Runner
         }
 
         var events = LoadEvents(dataDirectory, era);
-        var engine = new EventEngine(events, options.Seed);
+        var engine = new EventEngine(events, era, options.Seed);
         var lifecycle = new LifecycleSystem(options.Seed);
 
         var state = new GameState
