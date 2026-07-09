@@ -27,7 +27,7 @@ coverage/
 Thumbs.db
 
 ## Avalonia / Blazor publish output
-publish/
+# publish/
 *.log
 
 ## Local save data (dev-time playtesting)

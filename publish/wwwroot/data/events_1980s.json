@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 1,
+  "eraId": "1980s",
+  "events": [
+    {
+      "id": "secondary_school_graduate_1980s",
+      "minAge": 18,
+      "maxAge": 18,
+      "weight": 100,
+      "isUnique": true,
+      "category": "education",
+      "title": "中學會考放榜",
+      "body": "會考成績出咗，你要諗清楚下一步點行。",
+      "choices": [
+        {
+          "id": "go_polytechnic",
+          "text": "報讀理工學院",
+          "effects": { "money": -3000, "stress": 10, "education": 15 },
+          "flagsToSet": ["student"]
+        },
+        {
+          "id": "start_working",
+          "text": "出嚟搵嘢做",
+          "effects": { "money": 2000, "stress": 5, "education": -3 },
+          "flagsToSet": ["factory_worker"]
+        },
+        {
+          "id": "stay_home_help",
+          "text": "留喺屋企幫手",
+          "effects": { "stress": 5, "familyBond": 5, "education": -5 },
+          "flagsToSet": ["housewife_helper"]
+        }
+      ]
+    },
+    {
+      "id": "english_evening_class_1980s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 35,
+      "category": "education",
+      "title": "夜校學英文",
+      "body": "識英文先有機會升做文員，你決定去夜校報班。",
+      "conditions": [
+        { "op": "hasFlag", "value": "factory_worker" }
+      ],
+      "choices": [
+        {
+          "id": "attend_class",
+          "text": "落實去讀",
+          "effects": { "money": -1500, "stress": 8, "education": 12 }
+        },
+        {
+          "id": "too_busy",
+          "text": "太忙冇時間",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "polytechnic_life_1980s",
+      "minAge": 18,
+      "maxAge": 23,
+      "weight": 50,
+      "isUnique": true,
+      "category": "education",
+      "title": "理工生活",
+      "body": "半工讀嘅日子唔容易，但你學到嘅專業知識令你對將來多咗信心。",
+      "conditions": [
+        { "op": "hasFlag", "value": "student" }
+      ],
+      "choices": [
+        {
+          "id": "focus_study",
+          "text": "專心讀好啲",
+          "effects": { "stress": 8, "education": 15 }
+        },
+        {
+          "id": "part_time_job",
+          "text": "半工讀賺外快",
+          "effects": { "money": 1500, "stress": 12 }
+        }
+      ]
+    },
+    {
+      "id": "factory_relocate_north_1980s",
+      "minAge": 22,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "career",
+      "title": "廠佬話要北上設廠",
+      "body": "老闆話大陸開放搞活，人工平好多，問你要唔要跟廠一齊北上。",
+      "conditions": [
+        { "op": "hasFlag", "value": "factory_worker" }
+      ],
+      "choices": [
+        {
+          "id": "go_north",
+          "text": "跟廠北上做管工",
+          "effects": { "money": 4000, "stress": 15, "familyBond": -5 }
+        },
+        {
+          "id": "stay_in_hk",
+          "text": "留喺香港另揾出路",
+          "effects": { "money": -1000, "stress": 10 }
+        }
+      ]
+    },
+    {
+      "id": "promoted_supervisor_1980s",
+      "minAge": 24,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "career",
+      "title": "升做主管",
+      "body": "做咗幾年，廠佬睇中你，話想升你做主管。",
+      "conditions": [
+        { "op": "hasFlag", "value": "factory_worker" }
+      ],
+      "choices": [
+        {
+          "id": "accept_promotion",
+          "text": "接受升職",
+          "effects": { "money": 3500, "stress": 12, "reputation": 8 }
+        },
+        {
+          "id": "stay_on_floor",
+          "text": "留喺車間做返本業",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "join_finance_1980s",
+      "minAge": 20,
+      "maxAge": 45,
+      "weight": 30,
+      "category": "career",
+      "title": "入行做金融",
+      "body": "香港金融業愈做愈大，你諗住轉行入證券行做嘢。",
+      "conditions": [
+        { "op": "hasFlag", "value": "student" }
+      ],
+      "choices": [
+        {
+          "id": "join_brokerage",
+          "text": "入證券行搏一鋪",
+          "effects": { "money": 4000, "stress": 15, "reputation": 5 },
+          "flagsToSet": ["finance_worker"]
+        },
+        {
+          "id": "stay_safe",
+          "text": "搵份穩陣工先",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "join_civil_service_1980s",
+      "minAge": 20,
+      "maxAge": 40,
+      "weight": 35,
+      "isUnique": true,
+      "category": "career",
+      "title": "考入公務員",
+      "body": "政府請人，鐵飯碗人人都想爭。",
+      "choices": [
+        {
+          "id": "take_the_exam",
+          "text": "去考公務員",
+          "effects": { "money": -500, "stress": 12, "reputation": 5 },
+          "flagsToSet": ["civil_servant"]
+        },
+        {
+          "id": "skip_it",
+          "text": "唔想考",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "get_taxi_license_1980s",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "頂的士牌",
+      "body": "朋友話頂個的士牌好搵，問你有冇興趣夾份買。",
+      "choices": [
+        {
+          "id": "buy_license",
+          "text": "夾份頂個牌",
+          "effects": { "money": -15000, "stress": 12, "reputation": 3 }
+        },
+        {
+          "id": "drive_for_others",
+          "text": "打工揸的士就算",
+          "effects": { "money": 2000, "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "stock_market_crash_1987_1980s",
+      "minAge": 20,
+      "maxAge": 60,
+      "weight": 20,
+      "category": "career",
+      "title": "1987年股災",
+      "body": "股市一鋪清袋，你身邊唔少人喺呢場股災輸到淨返底褲。",
+      "choices": [
+        {
+          "id": "had_invested",
+          "text": "早排咪買咗啲股票",
+          "effects": { "money": -8000, "stress": 13 }
+        },
+        {
+          "id": "stayed_out",
+          "text": "冇買股票，執返身彩",
+          "effects": { "stress": 5 }
+        }
+      ]
+    },
+    {
+      "id": "queue_for_public_housing_1980s",
+      "minAge": 20,
+      "maxAge": 55,
+      "weight": 30,
+      "category": "housing",
+      "title": "輪公屋",
+      "body": "排咗成十年公屋，終於等到派樓嘅消息。",
+      "choices": [
+        {
+          "id": "accept_the_unit",
+          "text": "接受派嘅單位",
+          "effects": { "money": -1000, "stress": -8, "familyBond": 8 }
+        },
+        {
+          "id": "keep_waiting",
+          "text": "諗住揀好啲位置再等",
+          "effects": { "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "buy_flat_off_plan_1980s",
+      "minAge": 22,
+      "maxAge": 45,
+      "weight": 40,
+      "isUnique": true,
+      "category": "housing",
+      "title": "買樓花",
+      "body": "地產商賣緊未起好嘅樓花，你聽人講呢個時候入市啱晒。",
+      "choices": [
+        {
+          "id": "put_down_deposit",
+          "text": "落訂買樓花",
+          "effects": { "money": -40000, "stress": 15 },
+          "flagsToSet": ["bought_off_plan"],
+          "followUpEventId": "flat_off_plan_completion_1980s"
+        },
+        {
+          "id": "not_yet",
+          "text": "睇定啲先",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "flat_off_plan_completion_1980s",
+      "minAge": 23,
+      "maxAge": 48,
+      "weight": 100,
+      "isUnique": true,
+      "category": "housing",
+      "title": "樓花落成收樓",
+      "body": "幾年後，個盤終於起好，你去到現場，第一次攞到自己層樓嘅鎖匙。",
+      "choices": [
+        {
+          "id": "complete_purchase",
+          "text": "俾埋尾款收樓",
+          "effects": { "money": -260000, "stress": 12, "familyBond": 10 },
+          "flagsToSet": ["legacy_owns_flat"]
+        },
+        {
+          "id": "cannot_afford",
+          "text": "尾期都畀唔起，蝕訂走人",
+          "effects": { "money": -30000, "stress": 20 }
+        }
+      ]
+    },
+    {
+      "id": "upgrade_to_private_estate_1980s",
+      "minAge": 30,
+      "maxAge": 55,
+      "weight": 20,
+      "category": "housing",
+      "title": "換樓搬入私人屋苑",
+      "body": "屋企人口愈嚟愈多，你諗住換層大啲嘅私人屋苑單位。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "upgrade_flat",
+          "text": "賣舊樓換大屋",
+          "effects": { "money": -60000, "stress": 15, "familyBond": 10 }
+        },
+        {
+          "id": "stay_put",
+          "text": "住開就算，唔搬喇",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "free_love_dating_1980s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 60,
+      "category": "relationship",
+      "title": "自由戀愛拍拖",
+      "body": "唔似上一輩要靠媒人，你自己識到個鍾意嘅人，開始拍拖。",
+      "choices": [
+        {
+          "id": "start_dating",
+          "text": "開始拍拖",
+          "effects": { "stress": -5, "familyBond": 5 },
+          "flagsToSet": ["dating"]
+        },
+        {
+          "id": "stay_single",
+          "text": "享受單身",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "get_married_1980s",
+      "minAge": 22,
+      "maxAge": 45,
+      "weight": 45,
+      "isUnique": true,
+      "category": "relationship",
+      "title": "結婚",
+      "body": "拍咗幾年拖，你哋決定影婚紗相、擺酒，正式結為夫婦。",
+      "conditions": [
+        { "op": "hasFlag", "value": "dating" }
+      ],
+      "choices": [
+        {
+          "id": "get_married_choice",
+          "text": "擺酒結婚",
+          "effects": { "money": -40000, "stress": 12, "familyBond": 15 },
+          "flagsToSet": ["married"]
+        },
+        {
+          "id": "stay_partners",
+          "text": "未想結婚",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "have_kids_1980s",
+      "minAge": 24,
+      "maxAge": 45,
+      "weight": 40,
+      "category": "relationship",
+      "title": "生仔",
+      "body": "你哋兩公婆商量好，準備迎接第一個小生命。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "have_the_baby",
+          "text": "迎接新生命",
+          "effects": { "money": -25000, "stress": 18, "familyBond": 20 },
+          "flagsToSet": ["has_kids"]
+        },
+        {
+          "id": "not_yet",
+          "text": "遲啲先",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "sino_british_talks_emigrate_1980s",
+      "minAge": 20,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "hk_flavor",
+      "title": "中英談判，移民潮",
+      "body": "中英兩國就香港前途展開談判，身邊唔少人開始諗住攞張外國護照。",
+      "choices": [
+        {
+          "id": "emigrate",
+          "text": "決定移民",
+          "effects": { "money": -25000, "stress": 13, "familyBond": -10 },
+          "flagsToSet": ["legacy_emigrated"]
+        },
+        {
+          "id": "stay_in_hk",
+          "text": "留喺香港",
+          "effects": { "stress": 5, "familyBond": 5 }
+        }
+      ]
+    },
+    {
+      "id": "karaoke_culture_1980s",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 35,
+      "category": "hk_flavor",
+      "title": "卡拉OK文化",
+      "body": "新開嘅卡拉OK吸引晒班朋友，大家夜晚都興去唱K解壓。",
+      "choices": [
+        {
+          "id": "go_sing",
+          "text": "去唱K",
+          "effects": { "money": -300, "stress": -8, "familyBond": 5 }
+        },
+        {
+          "id": "stay_home",
+          "text": "留喺屋企算",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "video_rental_1980s",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 30,
+      "category": "hk_flavor",
+      "title": "睇錄影帶",
+      "body": "樓下新開間錄影帶舖，你租咗幾盒戲返屋企同屋企人一齊睇。",
+      "choices": [
+        {
+          "id": "rent_movies",
+          "text": "租返幾盒戲",
+          "effects": { "money": -100, "stress": -5, "familyBond": 5 }
+        },
+        {
+          "id": "skip_it",
+          "text": "唔租喇",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "mark_six_1980s",
+      "minAge": 18,
+      "maxAge": 90,
+      "weight": 30,
+      "category": "hk_flavor",
+      "title": "六合彩",
+      "body": "今期六合彩頭獎超級大，你都買咗幾注試下運氣。",
+      "choices": [
+        {
+          "id": "play_and_win",
+          "text": "買咗幾注，中咗細獎",
+          "effects": { "money": 600, "stress": -5 },
+          "absoluteMoney": true
+        },
+        {
+          "id": "not_interested",
+          "text": "冇興趣",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "health_checkup_1980s",
+      "minAge": 25,
+      "maxAge": 70,
+      "weight": 40,
+      "category": "health",
+      "title": "身體檢查",
+      "body": "工廠安排咗一次身體檢查，報告話你有啲數值要留意。",
+      "choices": [
+        {
+          "id": "follow_advice",
+          "text": "聽從醫生建議",
+          "effects": { "money": -500, "health": 10, "stress": -3 }
+        },
+        {
+          "id": "ignore_it",
+          "text": "唔理佢",
+          "effects": { "health": -8 }
+        }
+      ]
+    },
+    {
+      "id": "overwork_factory_1980s",
+      "minAge": 18,
+      "maxAge": 55,
+      "weight": 50,
+      "category": "health",
+      "title": "廠房OT過勞",
+      "body": "訂單多到做唔切，日日OT到攰到瞓唔著。",
+      "conditions": [
+        { "statName": "Stress", "op": ">=", "value": "70" }
+      ],
+      "choices": [
+        {
+          "id": "take_a_break",
+          "text": "請假休息",
+          "effects": { "money": -500, "stress": -20, "health": 8 }
+        },
+        {
+          "id": "push_through",
+          "text": "頂硬上",
+          "effects": { "health": -15, "stress": 3 }
+        }
+      ]
+    },
+    {
+      "id": "family_doctor_1980s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 40,
+      "category": "health",
+      "title": "睇西醫",
+      "body": "身體唔妥，你去街口嘅私家醫生度睇症攞藥。",
+      "choices": [
+        {
+          "id": "follow_prescription",
+          "text": "乖乖食藥",
+          "effects": { "money": -300, "health": 10, "stress": -2 }
+        },
+        {
+          "id": "skip_medicine",
+          "text": "唔理佢，頂硬上",
+          "effects": { "health": -8 }
+        }
+      ]
+    },
+    {
+      "id": "inherited_ancestral_flat_1980s",
+      "minAge": 18,
+      "maxAge": 30,
+      "weight": 60,
+      "isUnique": true,
+      "category": "housing",
+      "title": "繼承祖屋",
+      "body": "你一出世，屋企已經留低一層祖屋畀你，你要諗清楚點處理呢份家業。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "sell_it",
+          "text": "賣咗套現",
+          "effects": { "money": 150000, "stress": -5, "familyBond": -5 }
+        },
+        {
+          "id": "keep_it",
+          "text": "留住做傳家之物",
+          "effects": { "stress": 5, "familyBond": 10 }
+        }
+      ]
+    },
+    {
+      "id": "family_network_abroad_1980s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 40,
+      "category": "hk_flavor",
+      "title": "移民關係網",
+      "body": "屋企上一代已經移咗民，喺外國落地生根，佢哋話隨時歡迎你過去投靠。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_emigrated" }
+      ],
+      "choices": [
+        {
+          "id": "join_them",
+          "text": "決定過去投靠佢哋",
+          "effects": { "money": -20000, "stress": 15, "familyBond": 10 },
+          "flagsToSet": ["legacy_emigrated"]
+        },
+        {
+          "id": "stay_and_build_here",
+          "text": "留喺呢度自己打拼",
+          "effects": { "stress": 5, "familyBond": -5 }
+        }
+      ]
+    },
+    {
+      "id": "generic_daily_life_1980s",
+      "minAge": 0,
+      "maxAge": 120,
+      "weight": 1,
+      "isUnique": false,
+      "category": "fallback",
+      "title": "尋常一日",
+      "body": "又係平凡嘅一日，返工放工，日子照舊噉過。",
+      "choices": [
+        {
+          "id": "rest_at_home",
+          "text": "留喺屋企唞下",
+          "effects": { "stress": -3, "health": 2 }
+        },
+        {
+          "id": "hang_out_with_friends",
+          "text": "同朋友出去蒲",
+          "effects": { "money": -200, "stress": -5, "familyBond": 2 }
+        },
+        {
+          "id": "work_overtime",
+          "text": "留低加班",
+          "effects": { "money": 500, "stress": 5 }
+        }
+      ]
+    }
+  ]
+}

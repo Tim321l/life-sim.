@@ -1,0 +1,642 @@
+{
+  "schemaVersion": 1,
+  "eraId": "2000s",
+  "events": [
+    {
+      "id": "dse_or_asso_2000s",
+      "minAge": 18,
+      "maxAge": 18,
+      "weight": 100,
+      "isUnique": true,
+      "category": "education",
+      "title": "中學畢業，升學定就業？",
+      "body": "中學畢業，你要決定升學定係出嚟做嘢。",
+      "choices": [
+        {
+          "id": "go_university",
+          "text": "入讀大學",
+          "effects": { "money": -6000, "stress": 10, "education": 20 },
+          "flagsToSet": ["university_student"]
+        },
+        {
+          "id": "go_associate_degree",
+          "text": "讀副學士",
+          "effects": { "money": -4000, "stress": 10, "education": 12 },
+          "flagsToSet": ["assoc_degree_student"]
+        },
+        {
+          "id": "start_working",
+          "text": "出嚟做嘢",
+          "effects": { "money": 2500, "stress": 5, "education": -3 },
+          "flagsToSet": ["early_worker"]
+        }
+      ]
+    },
+    {
+      "id": "associate_degree_life_2000s",
+      "minAge": 18,
+      "maxAge": 23,
+      "weight": 50,
+      "isUnique": true,
+      "category": "education",
+      "title": "副學士生涯",
+      "body": "副學士學費唔平，出路又唔算好清晰，你努力諗辦法升讀大學。",
+      "conditions": [
+        { "op": "hasFlag", "value": "assoc_degree_student" }
+      ],
+      "choices": [
+        {
+          "id": "work_hard_to_upgrade",
+          "text": "拼盡去銜接學位",
+          "effects": { "money": -3000, "stress": 12, "education": 15 }
+        },
+        {
+          "id": "accept_as_is",
+          "text": "讀完就出嚟做嘢",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "university_life_2000s",
+      "minAge": 18,
+      "maxAge": 23,
+      "weight": 50,
+      "isUnique": true,
+      "category": "education",
+      "title": "大學生活",
+      "body": "上莊、Exchange、Intern，大學生活比想像中忙碌。",
+      "conditions": [
+        { "op": "hasFlag", "value": "university_student" }
+      ],
+      "choices": [
+        {
+          "id": "join_internship",
+          "text": "搵份Intern見識下",
+          "effects": { "money": 1000, "stress": 10, "reputation": 5 }
+        },
+        {
+          "id": "focus_study",
+          "text": "專心讀好書",
+          "effects": { "stress": 5, "education": 12 }
+        }
+      ]
+    },
+    {
+      "id": "dot_com_bubble_burst_2000s",
+      "minAge": 20,
+      "maxAge": 45,
+      "weight": 20,
+      "category": "career",
+      "title": "科網爆破",
+      "body": "你入咗嘅科網公司，股價一夜之間跌到唔見晒，公司話要大幅裁員。",
+      "choices": [
+        {
+          "id": "get_laid_off",
+          "text": "俾人炒咗，攞返筆遣散費",
+          "effects": { "money": 2000, "stress": 12 }
+        },
+        {
+          "id": "survived_layoff",
+          "text": "捱得過，留低但人工減咗",
+          "effects": { "money": -1500, "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "first_job_offer_2000s",
+      "minAge": 21,
+      "maxAge": 24,
+      "weight": 100,
+      "isUnique": true,
+      "category": "career",
+      "title": "第一份工",
+      "body": "收到第一份full time offer，你踏出社會第一步。",
+      "choices": [
+        {
+          "id": "accept_offer",
+          "text": "接受呢份工",
+          "effects": { "money": 3000, "stress": 5, "reputation": 3 },
+          "flagsToSet": ["employed"]
+        },
+        {
+          "id": "keep_searching",
+          "text": "繼續搵過",
+          "effects": { "money": -500, "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "join_finance_2000s",
+      "minAge": 22,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "career",
+      "title": "入行做金融",
+      "body": "香港金融業持續發圍，你考慮入行做前線。",
+      "choices": [
+        {
+          "id": "join_bank",
+          "text": "入銀行做嘢",
+          "effects": { "money": 4000, "stress": 8, "reputation": 5 }
+        },
+        {
+          "id": "stay_where_you_are",
+          "text": "唔轉行喇",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "join_civil_service_2000s",
+      "minAge": 20,
+      "maxAge": 40,
+      "weight": 30,
+      "isUnique": true,
+      "category": "career",
+      "title": "考入公務員",
+      "body": "政府又請人，鐵飯碗依然吸引唔少人爭崩頭。",
+      "choices": [
+        {
+          "id": "take_the_exam",
+          "text": "去考公務員",
+          "effects": { "money": -500, "stress": 10, "reputation": 5 },
+          "flagsToSet": ["civil_servant"]
+        },
+        {
+          "id": "skip_it",
+          "text": "唔考喇",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "layoff_2000s",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "裁員",
+      "body": "公司話要「精簡架構」，HR約你今日傾偈。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "negotiate_package",
+          "text": "同公司傾遣散費",
+          "effects": { "money": 6000, "stress": 10 }
+        },
+        {
+          "id": "fight_for_stay",
+          "text": "力爭留低",
+          "effects": { "stress": 12, "reputation": -3 }
+        }
+      ]
+    },
+    {
+      "id": "smartphone_career_shift_2000s",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 30,
+      "category": "career",
+      "title": "智能手機轉行",
+      "body": "智能手機興起，好多傳統行業開始式微，你認真考慮轉行做App相關工作。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "retrain_and_shift",
+          "text": "重新進修，轉行做IT",
+          "effects": { "money": -4000, "stress": 10, "education": 10 }
+        },
+        {
+          "id": "stay_in_current_job",
+          "text": "留喺原本行業",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "negative_equity_2000s",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 20,
+      "category": "housing",
+      "title": "負資產",
+      "body": "樓價大跌，你發現自己層樓已經變成負資產。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "hold_on",
+          "text": "死頂住供落去",
+          "effects": { "stress": 12 }
+        },
+        {
+          "id": "sell_at_loss",
+          "text": "劈價蝕讓",
+          "effects": { "money": -15000, "stress": 12 }
+        }
+      ]
+    },
+    {
+      "id": "save_for_flat_2000s",
+      "minAge": 25,
+      "maxAge": 45,
+      "weight": 40,
+      "isUnique": true,
+      "category": "housing",
+      "title": "儲首期",
+      "body": "你決心開始儲錢，為咗將來上車做準備。",
+      "choices": [
+        {
+          "id": "save_hard",
+          "text": "死慳死抵儲錢",
+          "effects": { "money": -2000, "stress": 6 },
+          "flagsToSet": ["saving_down_payment"],
+          "followUpEventId": "buy_flat_2000s"
+        },
+        {
+          "id": "give_up_saving",
+          "text": "算把啦",
+          "effects": { "money": 1000, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "buy_flat_2000s",
+      "minAge": 25,
+      "maxAge": 50,
+      "weight": 100,
+      "isUnique": true,
+      "category": "housing",
+      "title": "簽約上車",
+      "body": "揀好單位，你同律師樓簽約，正式成為業主。",
+      "conditions": [
+        { "op": "hasFlag", "value": "saving_down_payment" }
+      ],
+      "choices": [
+        {
+          "id": "sign_the_deal",
+          "text": "簽約上車",
+          "effects": { "money": -180000, "stress": 9, "familyBond": 5 },
+          "flagsToSet": ["legacy_owns_flat"]
+        },
+        {
+          "id": "back_out",
+          "text": "臨陣退縮",
+          "effects": { "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "subdivided_flat_2000s",
+      "minAge": 22,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "housing",
+      "title": "劏房生活",
+      "body": "租金唔平，你搬入一間分間出嚟嘅劏房將就住。",
+      "choices": [
+        {
+          "id": "endure_it",
+          "text": "捱住先",
+          "effects": { "money": 1200, "stress": 7, "health": -5 }
+        },
+        {
+          "id": "move_out",
+          "text": "搬返出去住大啲",
+          "effects": { "money": -1500, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "dating_2000s",
+      "minAge": 20,
+      "maxAge": 45,
+      "weight": 60,
+      "category": "relationship",
+      "title": "拍拖",
+      "body": "喺朋友聚會識到一個傾得幾投契嘅人。",
+      "choices": [
+        {
+          "id": "start_dating",
+          "text": "開始拍拖",
+          "effects": { "stress": -5, "familyBond": 5 },
+          "flagsToSet": ["dating"]
+        },
+        {
+          "id": "stay_single",
+          "text": "享受單身",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "marriage_2000s",
+      "minAge": 24,
+      "maxAge": 50,
+      "weight": 45,
+      "isUnique": true,
+      "category": "relationship",
+      "title": "結婚",
+      "body": "拍咗幾年拖，你哋決定結婚。",
+      "conditions": [
+        { "op": "hasFlag", "value": "dating" }
+      ],
+      "choices": [
+        {
+          "id": "get_married",
+          "text": "註冊擺酒結婚",
+          "effects": { "money": -70000, "stress": 9, "familyBond": 15 },
+          "flagsToSet": ["married"]
+        },
+        {
+          "id": "stay_partners",
+          "text": "未想結婚",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "have_kids_2000s",
+      "minAge": 26,
+      "maxAge": 48,
+      "weight": 40,
+      "category": "relationship",
+      "title": "生仔",
+      "body": "你哋準備好迎接第一個小生命。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "have_the_baby",
+          "text": "迎接新生命",
+          "effects": { "money": -35000, "stress": 11, "familyBond": 20 },
+          "flagsToSet": ["has_kids"]
+        },
+        {
+          "id": "not_yet",
+          "text": "遲啲先",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "free_travel_scheme_retail_2000s",
+      "minAge": 20,
+      "maxAge": 60,
+      "weight": 25,
+      "category": "hk_flavor",
+      "title": "自由行帶旺零售",
+      "body": "自由行政策開通，大批內地旅客湧到，零售舖租同生意都旺咗好多。",
+      "choices": [
+        {
+          "id": "open_retail_shop",
+          "text": "開間舖做遊客生意",
+          "effects": { "money": -5000, "stress": 8, "reputation": 5 }
+        },
+        {
+          "id": "work_in_retail",
+          "text": "入零售行業打工",
+          "effects": { "money": 2000, "stress": 8 }
+        }
+      ]
+    },
+    {
+      "id": "high_speed_rail_open_2000s",
+      "minAge": 18,
+      "maxAge": 70,
+      "weight": 20,
+      "category": "hk_flavor",
+      "title": "高鐵通車",
+      "body": "高鐵香港段通車，去內地方便咗好多，你都諗住搭高鐵去見識下。",
+      "choices": [
+        {
+          "id": "take_the_train",
+          "text": "搭高鐵去內地玩",
+          "effects": { "money": -800, "stress": -5, "education": 3 }
+        },
+        {
+          "id": "not_interested",
+          "text": "唔急住去",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "lehman_minibonds_2000s",
+      "minAge": 25,
+      "maxAge": 65,
+      "weight": 15,
+      "category": "hk_flavor",
+      "title": "雷曼迷債",
+      "body": "銀行職員話呢隻「迷你債券」保本又高息，你聽咗佢講買咗一筆，點知雷曼爆煲，錢蒸發晒。",
+      "choices": [
+        {
+          "id": "had_bought_minibonds",
+          "text": "早排買咗迷債",
+          "effects": { "money": -10000, "stress": 13, "familyBond": -3 }
+        },
+        {
+          "id": "avoided_it",
+          "text": "冇買，執返身彩",
+          "effects": { "stress": 3 }
+        }
+      ]
+    },
+    {
+      "id": "mark_six_2000s",
+      "minAge": 18,
+      "maxAge": 90,
+      "weight": 30,
+      "category": "hk_flavor",
+      "title": "六合彩",
+      "body": "今期六合彩頭獎過億，你都買咗幾注試下運氣。",
+      "choices": [
+        {
+          "id": "play_and_win",
+          "text": "買咗幾注，中咗細獎",
+          "effects": { "money": 1500, "stress": -5 },
+          "absoluteMoney": true
+        },
+        {
+          "id": "not_interested",
+          "text": "冇興趣",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "sars_outbreak_2000s",
+      "minAge": 18,
+      "maxAge": 85,
+      "weight": 25,
+      "isUnique": true,
+      "category": "health",
+      "title": "沙士爆發",
+      "body": "不明肺炎迅速蔓延，全城人人自危，個個出街都戴口罩。",
+      "choices": [
+        {
+          "id": "stay_vigilant",
+          "text": "小心翼翼，減少外出",
+          "effects": { "money": -1500, "stress": 10, "health": 3 }
+        },
+        {
+          "id": "got_infected",
+          "text": "不幸中招，要送院隔離",
+          "effects": { "stress": 14, "health": -15 },
+          "followUpEventId": "sars_recovery_2000s"
+        }
+      ]
+    },
+    {
+      "id": "sars_recovery_2000s",
+      "minAge": 18,
+      "maxAge": 85,
+      "weight": 100,
+      "isUnique": true,
+      "category": "health",
+      "title": "康復出院",
+      "body": "喺醫院捱過最辛苦嘅日子，你終於康復出院，但身心都留低咗痕跡。",
+      "choices": [
+        {
+          "id": "slowly_recover",
+          "text": "慢慢調理番身體",
+          "effects": { "money": -3000, "health": 15, "stress": -8 }
+        },
+        {
+          "id": "push_back_to_work",
+          "text": "即刻返去搏殺",
+          "effects": { "money": 2000, "health": -5, "stress": 10 }
+        }
+      ]
+    },
+    {
+      "id": "health_checkup_2000s",
+      "minAge": 25,
+      "maxAge": 75,
+      "weight": 40,
+      "category": "health",
+      "title": "身體檢查",
+      "body": "公司年度體檢報告出咗，醫生話你有啲數值要留意。",
+      "choices": [
+        {
+          "id": "follow_advice",
+          "text": "聽醫生話，改善生活習慣",
+          "effects": { "money": -800, "health": 10, "stress": -5 }
+        },
+        {
+          "id": "ignore_it",
+          "text": "唔理佢",
+          "effects": { "health": -8 }
+        }
+      ]
+    },
+    {
+      "id": "overwork_warning_2000s",
+      "minAge": 20,
+      "maxAge": 60,
+      "weight": 55,
+      "category": "health",
+      "title": "過勞警號",
+      "body": "成個月OT到深夜，你開始覺得成身唔妥，朋友都勸你唞下。",
+      "conditions": [
+        { "statName": "Stress", "op": ">=", "value": "70" }
+      ],
+      "choices": [
+        {
+          "id": "take_a_break",
+          "text": "請假休息",
+          "effects": { "money": -1000, "stress": -20, "health": 8 }
+        },
+        {
+          "id": "push_through",
+          "text": "頂硬上",
+          "effects": { "health": -15, "stress": 3 }
+        }
+      ]
+    },
+    {
+      "id": "inherited_ancestral_flat_2000s",
+      "minAge": 18,
+      "maxAge": 30,
+      "weight": 60,
+      "isUnique": true,
+      "category": "housing",
+      "title": "繼承祖屋",
+      "body": "你一出世，屋企已經留低一層祖屋畀你，你要諗清楚點處理呢份家業。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "sell_it",
+          "text": "賣咗套現",
+          "effects": { "money": 150000, "stress": -5, "familyBond": -5 }
+        },
+        {
+          "id": "keep_it",
+          "text": "留住做傳家之物",
+          "effects": { "stress": 5, "familyBond": 10 }
+        }
+      ]
+    },
+    {
+      "id": "family_network_abroad_2000s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 40,
+      "category": "hk_flavor",
+      "title": "移民關係網",
+      "body": "屋企上一代已經移咗民，喺外國落地生根，佢哋話隨時歡迎你過去投靠。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_emigrated" }
+      ],
+      "choices": [
+        {
+          "id": "join_them",
+          "text": "決定過去投靠佢哋",
+          "effects": { "money": -20000, "stress": 15, "familyBond": 10 },
+          "flagsToSet": ["legacy_emigrated"]
+        },
+        {
+          "id": "stay_and_build_here",
+          "text": "留喺呢度自己打拼",
+          "effects": { "stress": 5, "familyBond": -5 }
+        }
+      ]
+    },
+    {
+      "id": "generic_daily_life_2000s",
+      "minAge": 0,
+      "maxAge": 120,
+      "weight": 1,
+      "isUnique": false,
+      "category": "fallback",
+      "title": "尋常一日",
+      "body": "又係平凡嘅一日，返工放工，日子照舊噉過。",
+      "choices": [
+        {
+          "id": "rest_at_home",
+          "text": "留喺屋企休息",
+          "effects": { "stress": -3, "health": 2 }
+        },
+        {
+          "id": "hang_out_with_friends",
+          "text": "同朋友出去蒲",
+          "effects": { "money": -300, "stress": -5, "familyBond": 2 }
+        },
+        {
+          "id": "work_overtime",
+          "text": "留低加班",
+          "effects": { "money": 500, "stress": 5 }
+        }
+      ]
+    }
+  ]
+}
