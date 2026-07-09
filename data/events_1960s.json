@@ -572,6 +572,339 @@
       ]
     },
     {
+      "id": "family_after_school_chores_1960s",
+      "minAge": 6,
+      "maxAge": 11,
+      "weight": 35,
+      "category": "family",
+      "title": "放學要幫手",
+      "body": "阿媽成日要湊細佬妹、洗衫煮飯，放學你要唔要幫手？",
+      "choices": [
+        {
+          "id": "help_with_chores",
+          "text": "落力幫手做家務",
+          "effects": { "familyBond": 6, "stress": 2 }
+        },
+        {
+          "id": "go_play_outside",
+          "text": "走去同街坊仔玩",
+          "effects": { "familyBond": -2, "stress": -4 }
+        }
+      ]
+    },
+    {
+      "id": "family_exam_result_pressure_1960s",
+      "minAge": 8,
+      "maxAge": 15,
+      "weight": 25,
+      "category": "family",
+      "title": "默書派卷",
+      "body": "默書測驗派卷，你考得唔好，阿爸拎起藤條就話要「執手尾」。",
+      "choices": [
+        {
+          "id": "admit_and_study",
+          "text": "認錯，發奮讀書",
+          "effects": { "education": 5, "stress": 6, "familyBond": 3 }
+        },
+        {
+          "id": "talk_back",
+          "text": "頂嘴唔認錯",
+          "effects": { "stress": 3, "familyBond": -6 }
+        },
+        {
+          "id": "hide_the_report",
+          "text": "匿埋張卷唔畀屋企人睇",
+          "effects": { "stress": 4, "familyBond": -4 }
+        }
+      ]
+    },
+    {
+      "id": "family_sibling_rivalry_1960s",
+      "minAge": 7,
+      "maxAge": 16,
+      "weight": 35,
+      "category": "family",
+      "title": "同細佬爭嘢食",
+      "body": "屋企得返嗰舊叉燒，細佬同你爭住食，阿媽睇住你。",
+      "choices": [
+        {
+          "id": "give_way",
+          "text": "讓畀細佬",
+          "effects": { "familyBond": 5, "stress": -1 }
+        },
+        {
+          "id": "fight_for_it",
+          "text": "同佢爭到底",
+          "effects": { "familyBond": -5, "stress": 3, "health": -1 }
+        }
+      ]
+    },
+    {
+      "id": "family_reunion_dinner_1960s",
+      "minAge": 6,
+      "maxAge": 17,
+      "weight": 40,
+      "category": "family",
+      "title": "年三十晚團年",
+      "body": "全家人擠喺木屋一齊食團年飯，阿爺派利是，雖然清貧但都覺得幸福。",
+      "choices": [
+        {
+          "id": "enjoy_family_time",
+          "text": "開心咁同全家團聚",
+          "effects": { "money": 200, "familyBond": 8, "stress": -4 }
+        },
+        {
+          "id": "sneak_off_to_play",
+          "text": "掛住出去同街童放炮仗",
+          "effects": { "money": 200, "familyBond": -4, "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "family_financial_hardship_child_1960s",
+      "minAge": 8,
+      "maxAge": 15,
+      "weight": 25,
+      "category": "family",
+      "title": "屋企米缸見底",
+      "body": "你聽到阿爸阿媽喺房度細聲講「米缸又見底」，愁眉苦臉。",
+      "choices": [
+        {
+          "id": "help_earn_money",
+          "text": "拎埋啲舊公仔紙同人換錢幫手",
+          "effects": { "money": 150, "familyBond": 6, "stress": 2 }
+        },
+        {
+          "id": "pretend_not_to_know",
+          "text": "扮唔知道",
+          "effects": { "stress": -2, "familyBond": -3 }
+        }
+      ]
+    },
+    {
+      "id": "family_grandparent_visit_1960s",
+      "minAge": 6,
+      "maxAge": 17,
+      "weight": 30,
+      "category": "family",
+      "title": "去阿嫲度食飯",
+      "body": "阿嫲成日叫你去佢間屋食飯，仲會同你講以前落難嚟港嘅故事。",
+      "choices": [
+        {
+          "id": "listen_to_stories",
+          "text": "坐低耐心聽阿嫲講古",
+          "effects": { "familyBond": 7, "education": 2, "stress": -3 }
+        },
+        {
+          "id": "bored_wanna_play",
+          "text": "掛住掛住想走去玩",
+          "effects": { "familyBond": -2, "stress": 1 }
+        }
+      ]
+    },
+    {
+      "id": "family_pocket_money_choice_1960s",
+      "minAge": 7,
+      "maxAge": 14,
+      "weight": 40,
+      "category": "family",
+      "title": "阿爸畀嘅零用錢",
+      "body": "阿爸今日出咗糧，畀咗幾毫子你做零用錢。",
+      "choices": [
+        {
+          "id": "save_it",
+          "text": "慳返嚟唔洗",
+          "effects": { "money": 100, "stress": -1 }
+        },
+        {
+          "id": "spend_on_treats",
+          "text": "去買支墨綠雪條食",
+          "effects": { "money": -100, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "family_puppy_love_1960s",
+      "minAge": 13,
+      "maxAge": 17,
+      "weight": 30,
+      "category": "family",
+      "title": "隔籬屋個女仔",
+      "body": "隔籬屋個女仔成日喺你溫書嗰陣望住你，你心郁郁但又驚阿爸阿媽知道。",
+      "choices": [
+        {
+          "id": "secret_meetup",
+          "text": "偷偷約佢喺天台傾偈",
+          "effects": { "familyBond": -3, "stress": -4, "reputation": 1 }
+        },
+        {
+          "id": "focus_on_studies",
+          "text": "扮乜都唔知道，專心溫書",
+          "effects": { "education": 4, "stress": 2, "familyBond": 2 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_uk_1960s",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "英國生活點滴",
+      "body": "喺英國生活，你要慢慢習慣排隊文化同陰晴不定嘅天氣。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_UK" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "落力融入英式生活",
+          "effects": { "familyBond": -2, "stress": -4, "reputation": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "去唐人街搵返香港味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_australia_1960s",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "澳洲陽光生活",
+      "body": "陽光與海灘之外，你都要適應澳洲人鍾意BBQ同悠閒嘅生活節奏。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_AUSTRALIA" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "融入澳式BBQ生活",
+          "effects": { "familyBond": -2, "stress": -6, "health": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_canada_1960s",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "加拿大楓葉生活",
+      "body": "白雪皚皚嘅冬天，你揸住杯熱咖啡，感受住呢個新家嘅溫暖人情味。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_CANADA" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "融入加式生活",
+          "effects": { "familyBond": -2, "stress": -6, "health": 2 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_us_1960s",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "美國奮鬥生活",
+      "body": "喺呢個機會處處但競爭激烈嘅國度，你努力追尋屬於自己嘅美國夢。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_US" }
+      ],
+      "choices": [
+        {
+          "id": "chase_dream",
+          "text": "拼盡全力追夢",
+          "effects": { "money": 1500, "stress": 6, "reputation": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "workplace_colleague_conflict_1960s",
+      "minAge": 18,
+      "maxAge": 65,
+      "weight": 30,
+      "category": "career",
+      "title": "師傅同工友嘅心病",
+      "body": "工場入面有工友為咗爭表現，喺師傅面前講你壞話，你點算？",
+      "choices": [
+        {
+          "id": "confront",
+          "text": "直接同佢對質",
+          "effects": { "stress": 6, "reputation": -2 }
+        },
+        {
+          "id": "prove_yourself",
+          "text": "用實力證明自己",
+          "effects": { "stress": 4, "reputation": 5 }
+        }
+      ]
+    },
+    {
+      "id": "workplace_promotion_chance_1960s",
+      "minAge": 18,
+      "maxAge": 65,
+      "weight": 30,
+      "category": "career",
+      "title": "升做大師傅嘅機會",
+      "body": "師傅暗示你，如果肯捱義務加班幫手多啲，年尾有機會升做大師傅。",
+      "choices": [
+        {
+          "id": "grind_hard",
+          "text": "搏命衝業績",
+          "effects": { "money": 1000, "stress": 10, "health": -3, "reputation": 4 }
+        },
+        {
+          "id": "balance",
+          "text": "維持返生活平衡",
+          "effects": { "stress": -4 }
+        }
+      ]
+    },
+    {
+      "id": "era_defining_moon_landing_1960s",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 20,
+      "isUnique": true,
+      "category": "hk_flavor",
+      "title": "人類登陸月球",
+      "body": "電視新聞報導人類首次踏足月球，全香港人都覺得好神奇，街坊圍埋一齊睇。",
+      "choices": [
+        {
+          "id": "watch_with_neighbors",
+          "text": "同街坊一齊睇新聞",
+          "effects": { "stress": -5, "familyBond": 3 }
+        },
+        {
+          "id": "not_interested",
+          "text": "冇乜興趣，日子照過",
+          "effects": {}
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_1960s",
       "minAge": 0,
       "maxAge": 120,

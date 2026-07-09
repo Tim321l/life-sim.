@@ -258,6 +258,7 @@ internal sealed class GameSessionService
             }
             else
             {
+                RollWorldNewsEvent();
                 CurrentEvent = _engine?.SelectNextEvent(State);
                 StatDeltaToast = null;
                 await AutosaveAsync().ConfigureAwait(false);
@@ -377,6 +378,39 @@ internal sealed class GameSessionService
         State.SetFlag($"{prefix}{count + 1}");
     }
 
+    private int GetSkillLevel(string skillKey)
+    {
+        if (State is null) return 0;
+        var prefix = $"skill_{skillKey}_";
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith(prefix, StringComparison.Ordinal));
+        if (flag is null) return 0;
+        return int.TryParse(flag.AsSpan(prefix.Length), out var level) ? level : 0;
+    }
+
+    private int IncrementSkillLevel(string skillKey)
+    {
+        if (State is null) return 0;
+        var prefix = $"skill_{skillKey}_";
+        var current = GetSkillLevel(skillKey);
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith(prefix, StringComparison.Ordinal));
+        if (flag is not null)
+        {
+            State.FlagsSet.Remove(flag);
+        }
+
+        var next = current + 1;
+        State.SetFlag($"{prefix}{next}");
+        return next;
+    }
+
+    private static string SkillTierLabel(int practiceCount) => practiceCount switch
+    {
+        >= 30 => "宗師級 Master",
+        >= 15 => "熟練 Skilled",
+        >= 5 => "入門 Beginner",
+        _ => "新手 Novice"
+    };
+
     public async Task<string> StudyHardAsync()
     {
         if (State is null) return "無效狀態";
@@ -414,13 +448,20 @@ internal sealed class GameSessionService
         if (State.HasFlag("action_worked")) return "今年已經OT過，注意身體！";
 
         var before = State.Stats;
-        var bonus = ScaleMoney(1500);
+        var bonus = ScaleMoney(Random.Shared.Next(800, 2600));
+        var bigBonus = Random.Shared.Next(100) < 10;
+        if (bigBonus)
+        {
+            bonus = ScaleMoney(4000);
+        }
         State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: bonus, Reputation: 3, Stress: 4));
         State.SetFlag("action_worked");
         StatDeltaToast = BuildDeltaToast(before, State.Stats);
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
-        return $"你OT到深夜，老細對你讚不絕口，仲發咗少少獎金！(獲得 ${bonus:N0})";
+        return bigBonus
+            ? $"🌟 你嘅表現令老細喜出望外，仲俾埋大花紅！(獲得 ${bonus:N0})"
+            : $"你OT到深夜，老細對你讚不絕口，仲發咗少少獎金！(獲得 ${bonus:N0})";
     }
 
     public async Task<string> GigWorkAsync()
@@ -428,7 +469,7 @@ internal sealed class GameSessionService
         if (State is null) return "無效狀態";
         if (GetActionFlagCount("action_gig_") >= 3) return "今年做咗好多兼職，太攰啦！";
 
-        var pay = ScaleMoney(1000);
+        var pay = ScaleMoney(Random.Shared.Next(600, 1500));
         var before = State.Stats;
         State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Stress: 4, Health: -2));
         AddActionFlag("action_gig_");
@@ -480,9 +521,12 @@ internal sealed class GameSessionService
         if (success)
         {
             State.SetFlag("has_partner");
+            var name = NpcNames[Random.Shared.Next(NpcNames.Length)];
+            var trait = NpcTraits[Random.Shared.Next(NpcTraits.Length)];
+            State.SetFlag($"partner_{name}_{trait}");
             await AutosaveAsync().ConfigureAwait(false);
             Changed?.Invoke();
-            return "你鼓起勇氣表白，對方紅住臉應承咗——你成功出Pool啦！";
+            return $"你鼓起勇氣向{name}表白，對方紅住臉應承咗——你成功出Pool啦！";
         }
         else
         {
@@ -490,6 +534,133 @@ internal sealed class GameSessionService
             Changed?.Invoke();
             return "你嘗試向心儀對象表白，可惜對方話暫時想專注讀書/工作，請你食咗檸檬。";
         }
+    }
+
+    public (string Name, string Trait)? GetPartnerInfo()
+    {
+        if (State is null) return null;
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("partner_", StringComparison.Ordinal));
+        if (flag is null) return null;
+
+        var rest = flag["partner_".Length..];
+        var idx = rest.LastIndexOf('_');
+        return idx < 0 ? (rest, string.Empty) : (rest[..idx], rest[(idx + 1)..]);
+    }
+
+    public async Task<string> MarryPartnerAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag("has_partner")) return "你仲未有伴侶！";
+        if (State.HasFlag("married")) return "你已經結咗婚啦！";
+
+        var cost = ScaleMoney(-8000);
+        if (State.Stats.Money < Math.Abs(cost)) return "擺酒嘅錢都未儲夠，遲啲先啦！";
+
+        var before = State.Stats;
+        State.SetFlag("married");
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Stress: 10, FamilyBond: 25, Reputation: 5));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        var partner = GetPartnerInfo();
+        return $"💍 你同{partner?.Name ?? "另一半"}擺酒結婚，親朋戚友都嚟慶祝，人生一大喜事！(花費 ${Math.Abs(cost):N0})";
+    }
+
+    public async Task<string> DivorceAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag("married")) return "你未結婚，邊有得離婚！";
+
+        var cost = ScaleMoney(-5000);
+        var before = State.Stats;
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Stress: 15, FamilyBond: -20, Reputation: -5));
+        State.FlagsSet.Remove("married");
+        State.FlagsSet.Remove("has_partner");
+        var partnerFlag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("partner_", StringComparison.Ordinal));
+        if (partnerFlag is not null)
+        {
+            State.FlagsSet.Remove(partnerFlag);
+        }
+
+        State.SetFlag("divorced");
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"💔 你哋感情已經破裂，決定簽紙離婚，各自展開新生活。(花費 ${Math.Abs(cost):N0})";
+    }
+
+    // --- Parenting ---
+
+    public IReadOnlyList<(string Key, string Name)> GetChildren()
+    {
+        if (State is null) return [];
+
+        return [.. State.FlagsSet
+            .Where(f => f.StartsWith("child_", StringComparison.Ordinal))
+            .Select(f => f["child_".Length..])
+            .Select(rest =>
+            {
+                var idx = rest.IndexOf('_', StringComparison.Ordinal);
+                return idx < 0 ? (Key: rest, Name: rest) : (Key: rest, Name: rest[(idx + 1)..]);
+            })];
+    }
+
+    public async Task<string> HaveBabyAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag("married")) return "你未結婚，未可以要小朋友！";
+
+        var childCount = GetChildren().Count;
+        if (childCount >= 3) return "你哋已經有三個小朋友，家庭都幾熱鬧㗎啦！";
+        if (State.HasFlag("action_have_baby")) return "今年已經有咗好消息，慢慢嚟先！";
+
+        var cost = ScaleMoney(-10000);
+        if (State.Stats.Money < Math.Abs(cost)) return "養育小朋友使費唔少，你哋而家未夠錢！";
+
+        var before = State.Stats;
+        State.SetFlag("action_have_baby");
+        var name = NpcNames[Random.Shared.Next(NpcNames.Length)];
+        var childIndex = childCount + 1;
+        State.SetFlag($"child_{childIndex}_{name}");
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Stress: 12, FamilyBond: 20, Health: -3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"👶 恭喜！你哋迎接咗新成員 {name} 嚟到呢個家庭，一家人開心到喊！(花費 ${Math.Abs(cost):N0})";
+    }
+
+    public async Task<string> SpendTimeWithChildAsync(string childKey)
+    {
+        ArgumentNullException.ThrowIfNull(childKey);
+        if (State is null) return "無效狀態";
+
+        var hasChild = State.FlagsSet.Any(f => f.StartsWith($"child_{childKey}", StringComparison.Ordinal));
+        if (!hasChild) return "搵唔到呢個小朋友！";
+
+        var prefix = $"action_parenting_{childKey}_";
+        if (GetActionFlagCount(prefix) >= 2) return "今年已經同呢個小朋友玩夠喇，等下次先！";
+
+        var cost = ScaleMoney(-200);
+        var before = State.Stats;
+        AddActionFlag(prefix);
+
+        var name = childKey.Contains('_', StringComparison.Ordinal) ? childKey[(childKey.IndexOf('_', StringComparison.Ordinal) + 1)..] : childKey;
+        var roll = Random.Shared.Next(100);
+
+        if (roll < 15)
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, FamilyBond: 10, Stress: -6, Education: 2));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"📚 你陪{name}溫書做功課，仲教識咗佢新嘢，佢好開心！(花費 ${Math.Abs(cost):N0})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, FamilyBond: 7, Stress: -3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎡 你帶{name}去公園玩，佢成日笑，你都覺得好幸福。(花費 ${Math.Abs(cost):N0})";
     }
 
     public async Task<string> DatePartnerAsync()
@@ -681,6 +852,381 @@ internal sealed class GameSessionService
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
         return $"你成功出售咗 {name}，市場交易價為 ${finalPrice:N0}！(增幅/跌幅: {variancePct * 100:F1}%)";
+    }
+
+    // --- Hobbies ---
+
+    public async Task<string> PracticeMusicAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_music_") >= 2) return "今年已經夾咗好多次Band，休息下把口先！";
+
+        var cost = ScaleMoney(-300);
+        if (State.Stats.Money < Math.Abs(cost)) return "唔夠錢交音樂堂學費！";
+
+        var before = State.Stats;
+        AddActionFlag("action_music_");
+        var level = IncrementSkillLevel("music");
+        var tier = SkillTierLabel(level);
+        var buskingChance = Math.Min(20 + level, 60);
+
+        var busking = Random.Shared.Next(100) < buskingChance;
+        if (busking)
+        {
+            var tips = ScaleMoney(400 + (level * 30));
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost + tips, Reputation: 4, Stress: -6));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🎸 你去街頭表演，一班街坊圍住聽，仲有人打賞！(淨收 ${tips:N0}，音樂技能：{tier})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Reputation: 2, Stress: -6));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎹 你上咗堂音樂課，練習吉他/鋼琴，好療癒！(花費 ${Math.Abs(cost):N0}，音樂技能：{tier})";
+    }
+
+    public async Task<string> PlaySportsAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_sports_") >= 2) return "今年波都踢/打得夠多啦，小心受傷！";
+
+        var before = State.Stats;
+        AddActionFlag("action_sports_");
+        var level = IncrementSkillLevel("sports");
+        var tier = SkillTierLabel(level);
+        var injuryChance = Math.Max(10 - (level / 3), 2);
+
+        var injury = Random.Shared.Next(100) < injuryChance;
+        if (injury)
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Health: -4, Stress: -3, FamilyBond: 4));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"⚽ 你同波友踢咗場波，唔小心拗柴受咗少少傷，不過同班兄弟感情更好！(運動技能：{tier})";
+        }
+
+        var healthGain = 5 + (level / 5);
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Health: healthGain, Stress: -6, FamilyBond: 3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🏀 你同班波友打波/踢波，流曬汗，心情爽晒！(運動技能：{tier})";
+    }
+
+    public async Task<string> ReadBooksAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (State.HasFlag("action_reading")) return "今年已經睇夠書啦，眼訓喇！";
+
+        var before = State.Stats;
+        State.SetFlag("action_reading");
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Education: 2, Stress: -4, Money: ScaleMoney(-50)));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return "📖 你去咗圖書館/租書舖，靜靜地睇咗幾本書，心情平靜返好多。";
+    }
+
+    public async Task<string> PlayVideoGamesAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_gaming_") >= 2) return "今年打機打得夠多啦，眼訓喇！";
+
+        var before = State.Stats;
+        AddActionFlag("action_gaming_");
+
+        var tournamentWin = Random.Shared.Next(100) < 10;
+        if (tournamentWin)
+        {
+            var prize = ScaleMoney(2000);
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: prize, Reputation: 5, Stress: -4));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🏆 你參加咗網上電競比賽，估唔到贏咗獎金！(獲得 ${prize:N0})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Health: -2, Stress: -7, Reputation: 1));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return "🎮 你打咗成晚機，同網友一齊開黑，好紓壓！(不過對眼有啲累)";
+    }
+
+    public async Task<string> CookingAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_cooking_") >= 2) return "今年煮咗好多次飯啦，等下次先！";
+
+        var cost = ScaleMoney(-150);
+        if (State.Stats.Money < Math.Abs(cost)) return "唔夠錢買餸！";
+
+        var before = State.Stats;
+        AddActionFlag("action_cooking_");
+
+        var burnt = Random.Shared.Next(100) < 15;
+        if (burnt)
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Stress: 2, Health: -1));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🔥 你買咗餸想露一手，點知整燶咗，仲要叫外賣！(花費 ${Math.Abs(cost):N0})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, FamilyBond: 5, Health: 2, Stress: -3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🍳 你落廚煮咗一餐俾屋企人食，大家讚不絕口！(花費 ${Math.Abs(cost):N0})";
+    }
+
+    // --- Part-time job variety ---
+
+    public async Task<string> TutorPartTimeJobAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (State.Stats.Education < 40) return "你嘅學歷未夠格做補習老師！(需要學歷 >= 40)";
+        if (GetActionFlagCount("action_tutorjob_") >= 2) return "今年補習堂教得夠多啦，唔好累壞學生！";
+
+        var before = State.Stats;
+        AddActionFlag("action_tutorjob_");
+        var pay = ScaleMoney(Random.Shared.Next(1200, 2200));
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 4, Stress: 3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"📐 你兼職做補習老師，教學生做功課溫書，人工唔錯！(獲得 ${pay:N0})";
+    }
+
+    public async Task<string> RetailPartTimeJobAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_retailjob_") >= 3) return "今年做咗好多更零售兼職，攰啦！";
+
+        var before = State.Stats;
+        AddActionFlag("action_retailjob_");
+        var pay = ScaleMoney(Random.Shared.Next(500, 900));
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 1, Stress: 2, Health: -1));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🛍️ 你喺商場兼職做售貨員，企足成日，賺到少少人工。(獲得 ${pay:N0})";
+    }
+
+    public async Task<string> HandoutFlyersJobAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_flyersjob_") >= 3) return "今年派咗好多次傳單啦，休息下先！";
+
+        var before = State.Stats;
+        AddActionFlag("action_flyersjob_");
+        var pay = ScaleMoney(Random.Shared.Next(300, 600));
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Stress: 2, Health: -1));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"📄 你喺街口企咗成日派傳單，人工雖少但幾易做。(獲得 ${pay:N0})";
+    }
+
+    public async Task<string> LivestreamJobAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (GetActionFlagCount("action_livestream_") >= 2) return "今年直播咗好多次啦，畀啲時間休息下把聲！";
+
+        var before = State.Stats;
+        AddActionFlag("action_livestream_");
+        var roll = Random.Shared.Next(100);
+
+        if (roll < 15)
+        {
+            var viral = ScaleMoney(5000);
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: viral, Reputation: 8, Stress: 3));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🔥 你嘅直播意外爆紅，訂閱人數暴增，仲收到打賞！(獲得 ${viral:N0})";
+        }
+
+        if (roll < 45)
+        {
+            var pay = ScaleMoney(800);
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 2, Stress: 2));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"📹 你開咗場直播分享日常，反應都算唔錯。(獲得 ${pay:N0})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Reputation: -1, Stress: 3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return "😅 你開咗場直播，不過冇乜人睇，仲要畀人留言鬧，有啲灰心。";
+    }
+
+    // --- NPC friends (procedurally generated, not requiring a real player's share code) ---
+
+    private static readonly string[] NpcNames =
+        ["阿明", "阿珍", "家豪", "淑芬", "志偉", "美玲", "俊傑", "心怡", "國強", "麗華", "偉倫", "佩珊", "子健", "詠詩", "永權"];
+
+    private static readonly string[] NpcTraits =
+        ["開朗", "搞笑", "老實", "型格", "醒目", "熱心", "文靜", "好動"];
+
+    public IReadOnlyList<(string Key, string Name, string Trait)> GetNpcFriends()
+    {
+        if (State is null) return [];
+
+        return [.. State.FlagsSet
+            .Where(f => f.StartsWith("npc_friend_", StringComparison.Ordinal))
+            .Select(f => f["npc_friend_".Length..])
+            .Select(rest =>
+            {
+                var idx = rest.LastIndexOf('_');
+                return idx < 0 ? (Key: rest, Name: rest, Trait: string.Empty) : (Key: rest, Name: rest[..idx], Trait: rest[(idx + 1)..]);
+            })];
+    }
+
+    public async Task<string> MakeNpcFriendAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (State.HasFlag("action_make_friend")) return "今年已經識咗新朋友啦，慢慢培養感情先！";
+
+        State.SetFlag("action_make_friend");
+
+        var existing = GetNpcFriends().Select(f => f.Key).ToHashSet(StringComparer.Ordinal);
+        var candidates = (from name in NpcNames
+                           from trait in NpcTraits
+                           select $"{name}_{trait}").Where(key => !existing.Contains(key)).ToList();
+
+        if (candidates.Count == 0)
+        {
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return "你身邊嘅朋友圈已經好熱鬧，暫時冇新朋友加入！";
+        }
+
+        var success = Random.Shared.Next(100) < 60;
+        if (!success)
+        {
+            var before = State.Stats;
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 1));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return "你試住同班同學/同事搭訕，不過大家都幾忙，未夾到時間傾偈。";
+        }
+
+        var pick = candidates[Random.Shared.Next(candidates.Count)];
+        State.SetFlag($"npc_friend_{pick}");
+        var parts = pick.Split('_');
+
+        var beforeStats = State.Stats;
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(FamilyBond: 3, Stress: -2));
+        StatDeltaToast = BuildDeltaToast(beforeStats, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎉 你識到咗一個新朋友：{parts[0]}（性格：{parts[1]}），大家傾得幾投緣！";
+    }
+
+    public async Task<string> HangOutWithNpcAsync(string npcKey)
+    {
+        ArgumentNullException.ThrowIfNull(npcKey);
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag($"npc_friend_{npcKey}")) return "你同呢位仲未係朋友！";
+
+        var hangoutPrefix = $"action_hangout_{npcKey}_";
+        if (GetActionFlagCount(hangoutPrefix) >= 2) return "今年同呢位朋友已經玩夠喇，返去搵下其他人啦！";
+
+        var before = State.Stats;
+        AddActionFlag(hangoutPrefix);
+
+        var name = npcKey.Split('_')[0];
+        var roll = Random.Shared.Next(100);
+
+        if (roll < 15)
+        {
+            var gift = ScaleMoney(300);
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: gift, FamilyBond: 6, Stress: -5));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🎁 你同{name}出街食飯傾偈，佢仲請埋你食飯！(獲得 ${gift:N0})";
+        }
+
+        if (roll < 25)
+        {
+            var loan = ScaleMoney(-500);
+            if (State.Stats.Money >= Math.Abs(loan))
+            {
+                State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: loan, FamilyBond: 8, Stress: -3));
+                StatDeltaToast = BuildDeltaToast(before, State.Stats);
+                await AutosaveAsync().ConfigureAwait(false);
+                Changed?.Invoke();
+                return $"🥲 {name}話手緊，你夠義氣借咗少少錢俾佢，友誼更加深厚。(花費 ${Math.Abs(loan):N0})";
+            }
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(FamilyBond: 6, Stress: -4));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"😊 你同{name}一齊食飯睇戲傾心事，放鬆咗好多。";
+    }
+
+    // --- Random HK-flavored world news, rolled once per year during AdvanceYearAsync ---
+
+    public string? WorldNewsMessage { get; private set; }
+
+    private void RollWorldNewsEvent()
+    {
+        WorldNewsMessage = null;
+        if (State is null || Random.Shared.Next(100) >= 35)
+        {
+            return;
+        }
+
+        (string Message, StatDelta Delta)[] pool =
+        [
+            ("📉 環球股市大跌，市場人心惶惶。", new StatDelta(Money: ScaleMoney(-200), Stress: 2)),
+            ("📈 政府公布經濟支援措施，市面消費氣氛回暖。", new StatDelta(Money: ScaleMoney(200), Stress: -1)),
+            ("🌪️ 十號風球襲港，全城掛波，你放咗一日假。", new StatDelta(Stress: -3)),
+            ("☔ 黑色暴雨警告生效，返工放工都幾狼狽。", new StatDelta(Stress: 2, Health: -1)),
+            ("💻 科技行業掀起新一輪裁員潮，你身邊有朋友受影響。", new StatDelta(Stress: 2)),
+            ("🏠 樓市出現反彈，業主們笑逐顏開。", new StatDelta(Reputation: 1)),
+            ("💰 銀行宣布加息，供樓一族百上加斤。", new StatDelta(Stress: 2)),
+            ("🦠 流感高峰期殺到，記得小心身體。", new StatDelta(Health: -2)),
+            ("🎉 香港代表隊喺國際賽事贏得獎牌，全城歡呼！", new StatDelta(Stress: -2, FamilyBond: 1)),
+            ("🎓 政府推出獎學金計劃，莘莘學子受惠。", new StatDelta(Education: 1)),
+            ("🚇 鐵路服務大改善，通勤時間縮短咗，心情都好啲。", new StatDelta(Stress: -1)),
+            ("📱 新款手機發布，全城掀起搶購潮。", new StatDelta(Reputation: 1)),
+            ("🧧 農曆新年將至，親戚朋友派利是，你袋袋平安。", new StatDelta(Money: ScaleMoney(300), FamilyBond: 2)),
+            ("🪙 加密貨幣市場暴跌，唔少街坊蝕入肉。", new StatDelta(Stress: 2)),
+            ("🎆 除夕維港煙花匯演，全城歡度佳節。", new StatDelta(Stress: -2, FamilyBond: 1)),
+            ("⚡ 突然停電，全城陷入一片混亂，公司仲要提早收工。", new StatDelta(Stress: 1)),
+            ("🏗️ 市區重建計劃展開，樓價再創新高。", new StatDelta(Reputation: 1)),
+            ("🚕 的士車隊集體加價，市民出行成本上升。", new StatDelta(Money: ScaleMoney(-100))),
+            ("🍜 米芝蓮指南新鮮出爐，本地餐廳揚威國際。", new StatDelta(Reputation: 1, Stress: -1)),
+            ("🏥 公立醫院爆滿，等候時間創新高，你身邊有人受影響。", new StatDelta(Stress: 2)),
+            ("🎬 香港電影喺國際影展攞獎，全城引以為榮。", new StatDelta(Reputation: 2, Stress: -1)),
+            ("🐉 端午節龍舟競賽熱鬧舉行，你去咗睇熱鬧。", new StatDelta(Stress: -2)),
+            ("📶 5G/6G網絡覆蓋擴展，上網速度快咗好多。", new StatDelta(Stress: -1)),
+            ("🌊 天文台發出海嘯/風暴潮警告，沿海居民要小心。", new StatDelta(Stress: 2)),
+            ("🎨 西九文化區新展覽開幕，藝文氣息濃厚。", new StatDelta(Reputation: 1, Education: 1)),
+            ("💼 大型企業裁員消息傳出，就業市場氣氛緊張。", new StatDelta(Stress: 2)),
+            ("🏃 香港馬拉松盛大舉行，全城運動氣氛高漲。", new StatDelta(Health: 1, Stress: -1)),
+            ("🐷 豬肉/蔬菜價格飆升，主婦們叫苦連天。", new StatDelta(Money: ScaleMoney(-150))),
+            ("🎇 維港跨年倒數活動吸引萬人參與，氣氛熱烈。", new StatDelta(Stress: -2)),
+            ("🧬 本地大學研發新科技獲國際認可，港人揚眉吐氣。", new StatDelta(Reputation: 2, Education: 1)),
+        ];
+
+        var (message, delta) = pool[Random.Shared.Next(pool.Length)];
+        State.Stats = State.Stats.ApplyDelta(delta);
+        WorldNewsMessage = message;
     }
 
     private async Task AutosaveAsync()
