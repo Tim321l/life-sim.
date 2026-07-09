@@ -787,6 +787,339 @@
       ]
     },
     {
+      "id": "family_after_school_chores_2024plus",
+      "minAge": 6,
+      "maxAge": 11,
+      "weight": 35,
+      "category": "family",
+      "title": "放學要幫手",
+      "body": "爸爸媽媽WFH都幾忙，放學你要唔要幫手做家務？",
+      "choices": [
+        {
+          "id": "help_with_chores",
+          "text": "落力幫手做家務",
+          "effects": { "familyBond": 6, "stress": 2 }
+        },
+        {
+          "id": "go_play_outside",
+          "text": "走去屋邨遊樂場玩",
+          "effects": { "familyBond": -2, "stress": -4 }
+        }
+      ]
+    },
+    {
+      "id": "family_exam_result_pressure_2024plus",
+      "minAge": 8,
+      "maxAge": 15,
+      "weight": 25,
+      "category": "family",
+      "title": "測驗成績",
+      "body": "測驗成績麻麻，媽媽即刻話要幫你報AI補習App加操。",
+      "choices": [
+        {
+          "id": "admit_and_study",
+          "text": "乖乖用AI App溫書",
+          "effects": { "education": 5, "stress": 6, "familyBond": 3 }
+        },
+        {
+          "id": "talk_back",
+          "text": "頂嘴話唔想用",
+          "effects": { "stress": 3, "familyBond": -6 }
+        },
+        {
+          "id": "hide_the_report",
+          "text": "匿埋張成績表唔畀屋企人睇",
+          "effects": { "stress": 4, "familyBond": -4 }
+        }
+      ]
+    },
+    {
+      "id": "family_sibling_rivalry_2024plus",
+      "minAge": 7,
+      "maxAge": 16,
+      "weight": 35,
+      "category": "family",
+      "title": "爭用iPad",
+      "body": "屋企得一部iPad，你同細佬為咗打機定係睇YouTube爭崩頭。",
+      "choices": [
+        {
+          "id": "give_way",
+          "text": "讓畀細佬用",
+          "effects": { "familyBond": 5, "stress": -1 }
+        },
+        {
+          "id": "fight_for_it",
+          "text": "同佢爭到底",
+          "effects": { "familyBond": -5, "stress": 3, "health": -1 }
+        }
+      ]
+    },
+    {
+      "id": "family_reunion_dinner_2024plus",
+      "minAge": 6,
+      "maxAge": 17,
+      "weight": 40,
+      "category": "family",
+      "title": "年三十晚團年",
+      "body": "一家人團年，親戚仲要影相放IG，仲問你讀書點。",
+      "choices": [
+        {
+          "id": "enjoy_family_time",
+          "text": "開心咁同全家團聚",
+          "effects": { "money": 200, "familyBond": 8, "stress": -4 }
+        },
+        {
+          "id": "sneak_off_to_play",
+          "text": "掛住捉住部手機打機唔放",
+          "effects": { "money": 200, "familyBond": -4, "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "family_financial_hardship_child_2024plus",
+      "minAge": 8,
+      "maxAge": 15,
+      "weight": 25,
+      "category": "family",
+      "title": "屋企要慳啲使",
+      "body": "樓價高企，爸爸媽媽供樓壓力好大，你都感受到屋企緊張氣氛。",
+      "choices": [
+        {
+          "id": "help_earn_money",
+          "text": "喺網上賣舊玩具換錢幫補屋企",
+          "effects": { "money": 150, "familyBond": 6, "stress": 2 }
+        },
+        {
+          "id": "pretend_not_to_know",
+          "text": "扮唔知道",
+          "effects": { "stress": -2, "familyBond": -3 }
+        }
+      ]
+    },
+    {
+      "id": "family_grandparent_visit_2024plus",
+      "minAge": 6,
+      "maxAge": 17,
+      "weight": 30,
+      "category": "family",
+      "title": "視像通話阿嫲",
+      "body": "同阿嫲視像通話，佢好掛住你，仲問你幾時得閒返去食飯。",
+      "choices": [
+        {
+          "id": "listen_to_stories",
+          "text": "耐心陪阿嫲傾偈",
+          "effects": { "familyBond": 7, "education": 2, "stress": -3 }
+        },
+        {
+          "id": "bored_wanna_play",
+          "text": "掛住掛住想走去玩",
+          "effects": { "familyBond": -2, "stress": 1 }
+        }
+      ]
+    },
+    {
+      "id": "family_pocket_money_choice_2024plus",
+      "minAge": 7,
+      "maxAge": 14,
+      "weight": 40,
+      "category": "family",
+      "title": "電子利是錢",
+      "body": "阿爸用電子利是App畀咗你零用錢。",
+      "choices": [
+        {
+          "id": "save_it",
+          "text": "慳返嚟唔洗",
+          "effects": { "money": 100, "stress": -1 }
+        },
+        {
+          "id": "spend_on_treats",
+          "text": "課金手遊",
+          "effects": { "money": -100, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "family_puppy_love_2024plus",
+      "minAge": 13,
+      "maxAge": 17,
+      "weight": 30,
+      "category": "family",
+      "title": "IG隔籬班個佢",
+      "body": "IG度識咗隔籬班一個同學，日日傾偈仲互相Like相，你心郁郁。",
+      "choices": [
+        {
+          "id": "secret_meetup",
+          "text": "偷偷約佢放學去Cafe",
+          "effects": { "familyBond": -3, "stress": -4, "reputation": 1 }
+        },
+        {
+          "id": "focus_on_studies",
+          "text": "扮乜都唔知道，專心溫書",
+          "effects": { "education": 4, "stress": 2, "familyBond": 2 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_uk_2024plus",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "英國生活點滴",
+      "body": "喺英國生活，你要慢慢習慣排隊文化同陰晴不定嘅天氣。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_UK" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "落力融入英式生活",
+          "effects": { "familyBond": -2, "stress": -4, "reputation": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "去唐人街搵返香港味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_australia_2024plus",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "澳洲陽光生活",
+      "body": "陽光與海灘之外，你都要適應澳洲人鍾意BBQ同悠閒嘅生活節奏。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_AUSTRALIA" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "融入澳式BBQ生活",
+          "effects": { "familyBond": -2, "stress": -6, "health": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_canada_2024plus",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "加拿大楓葉生活",
+      "body": "白雪皚皚嘅冬天，你揸住杯Tim Hortons咖啡，感受住呢個新家嘅溫暖人情味。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_CANADA" }
+      ],
+      "choices": [
+        {
+          "id": "assimilate",
+          "text": "融入加式生活",
+          "effects": { "familyBond": -2, "stress": -6, "health": 2 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "diaspora_life_us_2024plus",
+      "minAge": 19,
+      "maxAge": 79,
+      "weight": 45,
+      "category": "diaspora",
+      "title": "美國奮鬥生活",
+      "body": "喺呢個機會處處但競爭激烈嘅國度，你努力追尋屬於自己嘅美國夢。",
+      "conditions": [
+        { "op": "hasFlag", "value": "emigrated_US" }
+      ],
+      "choices": [
+        {
+          "id": "chase_dream",
+          "text": "拼盡全力追夢",
+          "effects": { "money": 1500, "stress": 6, "reputation": 3 }
+        },
+        {
+          "id": "miss_home",
+          "text": "掛住香港嘅味道",
+          "effects": { "money": -300, "familyBond": 5, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "workplace_colleague_conflict_2024plus",
+      "minAge": 18,
+      "maxAge": 65,
+      "weight": 30,
+      "category": "career",
+      "title": "辦公室政治",
+      "body": "同事為咗爭表現，喺老闆面前講你壞話，你點算？",
+      "choices": [
+        {
+          "id": "confront",
+          "text": "直接同佢對質",
+          "effects": { "stress": 6, "reputation": -2 }
+        },
+        {
+          "id": "prove_yourself",
+          "text": "用實力證明自己",
+          "effects": { "stress": 4, "reputation": 5 }
+        }
+      ]
+    },
+    {
+      "id": "workplace_promotion_chance_2024plus",
+      "minAge": 18,
+      "maxAge": 65,
+      "weight": 30,
+      "category": "career",
+      "title": "升職機會",
+      "body": "上司暗示你如果肯捱義務加班衝業績，年尾有機會升職。",
+      "choices": [
+        {
+          "id": "grind_hard",
+          "text": "搏命衝業績",
+          "effects": { "money": 1000, "stress": 10, "health": -3, "reputation": 4 }
+        },
+        {
+          "id": "balance",
+          "text": "維持返生活平衡",
+          "effects": { "stress": -4 }
+        }
+      ]
+    },
+    {
+      "id": "era_defining_ai_wave_2024plus",
+      "minAge": 18,
+      "maxAge": 60,
+      "weight": 20,
+      "isUnique": true,
+      "category": "hk_flavor",
+      "title": "AI浪潮席捲全城",
+      "body": "AI科技急速發展，你間公司開始用AI取代部分人手，你都要諗下點應對。",
+      "choices": [
+        {
+          "id": "learn_ai",
+          "text": "學識同AI合作",
+          "effects": { "education": 8, "stress": 5, "reputation": 3 }
+        },
+        {
+          "id": "resist_change",
+          "text": "拒絕改變，堅持舊方法",
+          "effects": { "stress": 8, "reputation": -3 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_2024plus",
       "minAge": 0,
       "maxAge": 120,

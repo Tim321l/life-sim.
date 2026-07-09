@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!_framework/|css/|data/|js/|favicon\\.png|icon-192\\.png|HKLifeSim\\.Web\\.styles\\.css).*)", "destination": "/index.html" }
   ]
 }

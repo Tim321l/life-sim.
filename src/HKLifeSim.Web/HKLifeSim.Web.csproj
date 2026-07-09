@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!-- Vercel (and most plain static hosts) don't perform Blazor's expected Brotli/gzip
+         content negotiation, so the browser can end up fetching a compressed .wasm as if it
+         were raw bytes and fail to instantiate it. Publish only the uncompressed assets. -->
+    <CompressionEnabled>false</CompressionEnabled>
     <!-- CA1812: Services/components here are constructed by the DI container and Blazor's
          Router, which the analyzer can't see. -->
     <NoWarn>$(NoWarn);CA1812</NoWarn>
