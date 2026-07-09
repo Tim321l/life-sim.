@@ -81,6 +81,25 @@ public sealed class FullLifeSimulationTests : IDisposable
         loaded.Age.Should().Be(state.Age);
     }
 
+    [Fact]
+    public Task AutoPlayedLife_Seed42_Matches_Snapshot()
+    {
+        var state = PlayFullLife(seed: 42, out _);
+
+        var snapshot = new
+        {
+            state.Age,
+            state.CurrentYear,
+            state.IsAlive,
+            state.DeathCause,
+            state.Stats,
+            FlagsSet = state.FlagsSet.OrderBy(f => f, StringComparer.Ordinal),
+            state.EventHistory,
+        };
+
+        return Verifier.Verify(snapshot);
+    }
+
     public static IEnumerable<object[]> Seeds()
     {
         for (var seed = 1; seed <= 100; seed++)

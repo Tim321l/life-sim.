@@ -12,6 +12,10 @@ coverage/
 *.coverage
 *.coveragexml
 
+## Verify snapshot tests — mismatches produce *.received.* files for review;
+## only *.verified.* files are committed as golden references.
+*.received.*
+
 ## IDE
 .vs/
 .vscode/
