@@ -1,0 +1,41 @@
+<div class="stat-bar">
+    <div class="money">@FormatMoney(Stats.Money)</div>
+    <div class="stat-grid">
+        <div class="stat">
+            <span class="stat-label">健康 Health</span>
+            <span class="stat-value">@Stats.Health</span>
+            <div class="stat-track"><div class="stat-fill" style="width:@(Stats.Health)%; background:@StatColorScale.ForStat(Stats.Health, highIsGood: true)"></div></div>
+        </div>
+        <div class="stat">
+            <span class="stat-label">壓力 Stress</span>
+            <span class="stat-value">@Stats.Stress</span>
+            <div class="stat-track"><div class="stat-fill" style="width:@(Stats.Stress)%; background:@StatColorScale.ForStat(Stats.Stress, highIsGood: false)"></div></div>
+        </div>
+        <div class="stat">
+            <span class="stat-label">親情 FamilyBond</span>
+            <span class="stat-value">@Stats.FamilyBond</span>
+            <div class="stat-track"><div class="stat-fill neutral" style="width:@(Stats.FamilyBond)%"></div></div>
+        </div>
+        <div class="stat">
+            <span class="stat-label">學歷 Education</span>
+            <span class="stat-value">@Stats.Education</span>
+            <div class="stat-track"><div class="stat-fill neutral" style="width:@(Stats.Education)%"></div></div>
+        </div>
+        <div class="stat">
+            <span class="stat-label">聲望 Reputation</span>
+            <span class="stat-value">@Stats.Reputation</span>
+            <div class="stat-track"><div class="stat-fill neutral" style="width:@(Stats.Reputation)%"></div></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public StatBlock Stats { get; set; }
+
+    private static string FormatMoney(int money)
+    {
+        var sign = money < 0 ? "-" : string.Empty;
+        return $"{sign}${Math.Abs(money):N0}";
+    }
+}

@@ -1,0 +1,153 @@
+@page "/"
+@inject GameSessionService Session
+@inject NavigationManager Nav
+
+<div class="setup-page">
+    <h1 class="main-title">香港人生模擬器</h1>
+    <p class="subtitle">揀一個年代，開展你嘅香港人生</p>
+
+    <!-- Character Setup -->
+    <div class="character-creation-card">
+        <h3 class="section-title">👤 創建角色 Character Creation</h3>
+        <div class="field-row name-field">
+            <label for="playerName">名字 Name:</label>
+            <input id="playerName" @bind="_playerName" placeholder="例如：陳小明" class="text-input" />
+        </div>
+        <div class="field-row gender-field">
+            <label>性別 Gender:</label>
+            <div class="gender-selector">
+                <button type="button" class="gender-btn @(_playerGender == Gender.Male ? "active" : string.Empty)" @onclick="() => _playerGender = Gender.Male">👦 仔 Male</button>
+                <button type="button" class="gender-btn @(_playerGender == Gender.Female ? "active" : string.Empty)" @onclick="() => _playerGender = Gender.Female">👧 女 Female</button>
+                <button type="button" class="gender-btn @(_playerGender == Gender.Other ? "active" : string.Empty)" @onclick="() => _playerGender = Gender.Other">🤖 其他 Other</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Era Selection -->
+    <div class="era-selection-title">
+        <h3>⏳ 選擇時代 Select Era</h3>
+    </div>
+    <div class="era-grid">
+        @foreach (var era in Session.Eras)
+        {
+            var info = EraCatalog.Describe(era.EraId);
+            var isSelected = _selectedEraId == era.EraId;
+            <button type="button"
+                    class="era-card @(isSelected ? "selected" : string.Empty)"
+                    @onclick="() => _selectedEraId = era.EraId">
+                <span class="era-name">@info.DisplayName</span>
+                <span class="era-years">@info.YearRange</span>
+                <span class="era-desc">@info.Description</span>
+            </button>
+        }
+    </div>
+
+    <div class="field-row seed-field">
+        <label for="seed">種子 Seed (留空 = 隨機):</label>
+        <input id="seed" @bind="_seedText" placeholder="留空" class="text-input" />
+    </div>
+
+    <div class="setup-actions">
+        <button type="button" class="primary-button action-btn" @onclick="StartNewLife">✨ 開始新生活 Start Life</button>
+
+        @if (_canContinueLastSave)
+        {
+            <button type="button" class="primary-button action-btn secondary-btn" @onclick="ContinueLastSaveAsync">💾 繼續上次 Resume</button>
+        }
+    </div>
+
+    @if (_hasCompletedLineage)
+    {
+        <div class="legacy-option">
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="_useLegacyMode" />
+                繼承模式：以上一代嘅家族傳承開展新生活 (Legacy Mode)
+            </label>
+        </div>
+    }
+
+    @if (Session.SaveErrorMessage is not null)
+    {
+        <p class="error-text">@Session.SaveErrorMessage</p>
+    }
+
+    @if (_errorMessage is not null)
+    {
+        <p class="error-text">@_errorMessage</p>
+    }
+</div>
+
+@code {
+    private string? _selectedEraId;
+    private string _playerName = string.Empty;
+    private Gender _playerGender = Gender.Male;
+    private string _seedText = string.Empty;
+    private bool _canContinueLastSave;
+    private bool _hasCompletedLineage;
+    private bool _useLegacyMode;
+    private string? _errorMessage;
+    private IReadOnlyList<LegacyRecord> _savedLineage = [];
+
+    protected override void OnInitialized()
+    {
+        _selectedEraId = Session.Eras.Count > 0 ? Session.Eras[0].EraId : null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var loaded = await Session.LoadAutosaveAsync();
+        if (loaded is null)
+        {
+            return;
+        }
+
+        var (state, lineage) = loaded.Value;
+        _canContinueLastSave = state.IsAlive;
+        _savedLineage = lineage;
+        _hasCompletedLineage = !state.IsAlive && lineage.Count > 0;
+        StateHasChanged();
+    }
+
+    private async Task ContinueLastSaveAsync()
+    {
+        var resumed = await Session.TryContinueLastSaveAsync();
+        if (resumed)
+        {
+            Nav.NavigateTo("/game");
+        }
+    }
+
+    private void StartNewLife()
+    {
+        _errorMessage = null;
+
+        var era = Session.Eras.FirstOrDefault(e => e.EraId == _selectedEraId);
+        if (era is null)
+        {
+            _errorMessage = "請先揀一個年代。";
+            return;
+        }
+
+        var seed = int.TryParse(_seedText, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : Environment.TickCount;
+
+        var lineage = _useLegacyMode && _hasCompletedLineage ? _savedLineage : null;
+
+        try
+        {
+            Session.StartNewLife(era, seed, lineage, _playerName, _playerGender);
+            Nav.NavigateTo("/game");
+        }
+        catch (ArgumentException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}
+

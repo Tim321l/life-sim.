@@ -1,0 +1,1139 @@
+@page "/game"
+@inject GameSessionService Session
+@inject NavigationManager Nav
+@implements IDisposable
+
+@if (Session.State is not null)
+{
+    <!-- Phase A: Milestone Overlay Modal -->
+    @if (_activeMilestone is not null)
+    {
+        <div class="event-overlay">
+            <div class="glass-panel event-card" style="border-color: var(--reputation); box-shadow: 0 0 25px var(--reputation-glow);">
+                <div class="event-year-age" style="color: var(--reputation); font-weight: bold; font-size: 1rem;">
+                    🏆 人生里程碑 Milestone
+                </div>
+                <h2 class="event-title" style="margin-bottom: 24px; font-size: 1.8rem;">放榜與派位結果</h2>
+                <p class="event-body" style="font-size: 1.2rem; font-weight: 500; text-align: left; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 10px; border-left: 4px solid var(--reputation); line-height: 1.6;">
+                    @_activeMilestone
+                </p>
+                <div style="margin-top: 32px;">
+                    <button type="button" class="primary-button action-btn" style="min-width: 160px;" @onclick="ClearMilestone">收到！ Confirm</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Phase A: DSE Stream Chooser Modal -->
+    @if (IsStreamSelectionRequired)
+    {
+        <div class="event-overlay">
+            <div class="glass-panel event-card" style="border-color: var(--accent); box-shadow: 0 0 25px var(--accent-glow);">
+                <div class="event-year-age" style="color: var(--accent); font-weight: bold;">
+                    ✏️ 中四選科 Stream Selection
+                </div>
+                <h2 class="event-title">選擇你嘅選修科 Stream</h2>
+                <p class="event-body" style="line-height: 1.5;">
+                    升讀中四，你需要選擇未來兩年嘅選修學科。選科會影響你 DSE 嘅加分試題目！
+                </p>
+                <div class="event-choices" style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
+                    <button type="button" class="choice-button" @onclick='() => ChooseStream("science")'>
+                        🧪 理科 Science (物理 Physics + 化學 Chemistry)
+                    </button>
+                    <button type="button" class="choice-button" @onclick='() => ChooseStream("business")'>
+                        📈 商科 Business (經濟 Economics + BAFS 企會財)
+                    </button>
+                    <button type="button" class="choice-button" @onclick='() => ChooseStream("arts")'>
+                        📜 文科 Arts (歷史 History + 中國文學)
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Phase A: College Path Chooser Modal -->
+    @if (IsCollegeSelectionRequired)
+    {
+        <div class="event-overlay">
+            <div class="glass-panel event-card" style="border-color: var(--education); box-shadow: 0 0 25px var(--education-glow);">
+                <div class="event-year-age" style="color: var(--education); font-weight: bold;">
+                    🎓 大專路向選擇 College Path
+                </div>
+                <h2 class="event-title">選擇你嘅專上學位</h2>
+                <p class="event-body" style="line-height: 1.5;">
+                    JUPAS 分配你入讀副學位課程。請選擇就讀方向（大專兩年如果學歷達 60% 即可 Non-JUPAS 銜接大學）：
+                </p>
+                <div class="event-choices" style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
+                    <button type="button" class="choice-button" @onclick='() => ChooseCollege("asso")'>
+                        🎨 副學士課程 (Associate Degree) - 側重學術，為銜接大學學位做準備
+                    </button>
+                    <button type="button" class="choice-button" @onclick='() => ChooseCollege("hd")'>
+                        💻 高級文憑課程 (Higher Diploma) - 側重專業技術，為就業/銜接學位雙軌準備
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Phase A: Exam Trivia Modal -->
+    @if (_showExamTrivia)
+    {
+        <div class="event-overlay">
+            <div class="glass-panel event-card" style="max-width: 600px; border-color: var(--reputation); box-shadow: 0 0 25px var(--reputation-glow);">
+                <div class="event-year-age" style="color: var(--reputation); font-weight: bold;">
+                    📝 畢業試加分題 Exam Trivia
+                </div>
+                <h2 class="event-title" style="font-size:1.5rem;">香港公開考試 (HKDSE/會考)</h2>
+                <p class="event-body" style="font-size:0.95rem; line-height:1.5; color: var(--text-secondary); margin-bottom: 12px;">
+                    你即將步入試場！作答選修學科考題。答對將直接提升你的最終成績點數！
+                </p>
+
+                <div class="trivia-questions" style="text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
+                    <!-- Question 1 -->
+                    <div style="margin-bottom: 16px;">
+                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q1: @GetTriviaQuestion(1)</p>
+                        <select class="text-input" style="width: 100%; min-height:36px; padding:4px;" @bind="_triviaQ1Answer">
+                            <option value="-1">-- 請選擇答案 --</option>
+                            <option value="0">@GetTriviaOption(1, 0)</option>
+                            <option value="1">@GetTriviaOption(1, 1)</option>
+                            <option value="2">@GetTriviaOption(1, 2)</option>
+                        </select>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div>
+                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q2: @GetTriviaQuestion(2)</p>
+                        <select class="text-input" style="width: 100%; min-height:36px; padding:4px;" @bind="_triviaQ2Answer">
+                            <option value="-1">-- 請選擇答案 --</option>
+                            <option value="0">@GetTriviaOption(2, 0)</option>
+                            <option value="1">@GetTriviaOption(2, 1)</option>
+                            <option value="2">@GetTriviaOption(2, 2)</option>
+                        </select>
+                    </div>
+                </div>
+
+                @if (_triviaError is not null)
+                {
+                    <p style="color: var(--stress); font-size: 0.9rem; margin-top: 8px; font-weight: bold;">@_triviaError</p>
+                }
+
+                <div style="margin-top: 20px;">
+                    <button type="button" class="primary-button action-btn" style="min-width: 150px;" @onclick="SubmitExamTrivia">✍️ 遞交答卷 Submit</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Phase A: Annual Event Overlay/Modal (if current event is active) -->
+    @if (Session.CurrentEvent is not null)
+    {
+        <div class="event-overlay">
+            <div class="glass-panel event-card">
+                <div class="event-year-age">
+                    @Session.State.CurrentYear 年 · 現年 @Session.State.Age 歲
+                </div>
+                
+                @if (Session.CurrentEvent.Id.StartsWith("generic_daily_life_", StringComparison.Ordinal) && Session.State.Age < 18)
+                {
+                    <h2 class="event-title">@GetChildhoodEventTitle()</h2>
+                    <p class="event-body">@GetChildhoodEventBody(Session.State.Age)</p>
+
+                    <div class="event-choices">
+                        @foreach (var choice in Session.CurrentEvent.Choices)
+                        {
+                            <button type="button"
+                                    class="choice-button"
+                                    disabled="@Session.IsBusy"
+                                    @onclick="() => SelectChoiceAsync(choice.Id)">
+                                @GetChildhoodChoiceText(choice.Id, Session.State.Age)
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <h2 class="event-title">@Session.CurrentEvent.Title</h2>
+                    <p class="event-body">@Session.CurrentEvent.Body</p>
+
+                    <div class="event-choices">
+                        @foreach (var choice in Session.CurrentEvent.Choices)
+                        {
+                            <button type="button"
+                                    class="choice-button"
+                                    disabled="@Session.IsBusy"
+                                    @onclick="() => SelectChoiceAsync(choice.Id)">
+                                @choice.Text
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Phase B: Active Actions Dashboard (displayed when event is resolved) -->
+    <div class="game-page">
+        <!-- Floating notification for stat deltas -->
+        @if (!string.IsNullOrEmpty(Session.StatDeltaToast))
+        {
+            <div class="toast-banner">
+                <div>⚡ 屬性變動 Stat Changes:</div>
+                <div class="stat-deltas-highlight">@Session.StatDeltaToast</div>
+            </div>
+        }
+
+        @if (_actionFeedback is not null)
+        {
+            <div class="toast-banner">
+                <div>@_actionFeedback</div>
+            </div>
+        }
+
+        <!-- Top Stat Bar -->
+        <div class="glass-panel">
+            <StatBar Stats="Session.State.Stats" />
+        </div>
+
+        <div class="game-layout">
+            <!-- Left column: Profile & Stats info -->
+            <div class="sidebar-panel">
+                <div class="glass-panel profile-card">
+                    <h3 class="section-title">👤 角色檔案 Profile</h3>
+                    <div class="profile-name" style="margin-bottom:4px;">
+                        @(Session.State.Profile?.Name ?? "香港仔")
+                    </div>
+                    <div class="profile-meta">
+                        @(Session.State.Profile?.Gender switch {
+                            Gender.Male => "👦 仔 Male",
+                            Gender.Female => "👧 女 Female",
+                            _ => "🤖 其他 Other"
+                        })
+                    </div>
+                    
+                    <!-- Family background badge -->
+                    <div style="margin-top:8px;">
+                        @if (Session.State.HasFlag("family_poor"))
+                        {
+                            <span class="flag-chip" style="background: rgba(231, 76, 60, 0.15); border-color: #e74c3c; color: #ff7675; font-weight: bold; width: 100%; display: inline-block; text-align: center;">🏚️ 基層貧困家庭 Poor</span>
+                        }
+                        else if (Session.State.HasFlag("family_rich"))
+                        {
+                            <span class="flag-chip" style="background: rgba(46, 204, 113, 0.15); border-color: #2ecc71; color: #58db91; font-weight: bold; width: 100%; display: inline-block; text-align: center;">🏰 富裕豪門家庭 Rich</span>
+                        }
+                        else
+                        {
+                            <span class="flag-chip" style="background: rgba(52, 152, 219, 0.15); border-color: #3498db; color: #74b9ff; font-weight: bold; width: 100%; display: inline-block; text-align: center;">🏢 小康中產家庭 Middle</span>
+                        }
+                    </div>
+
+                    <div class="profile-details" style="margin-top:16px;">
+                        <div class="detail-row">
+                            <span class="detail-label">年代 Era</span>
+                            <span class="detail-val">@EraCatalog.Describe(Session.State.EraId).DisplayName</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">年份 Year</span>
+                            <span class="detail-val">@Session.State.CurrentYear 年</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">年齡 Age</span>
+                            <span class="detail-val">@Session.State.Age 歲</span>
+                        </div>
+                    </div>
+
+                    <h4 class="flag-chips-title">🏷️ 狀態旗標 Flags</h4>
+                    <div class="flag-chips">
+                        @if (Session.State.FlagsSet.Count(f => !f.StartsWith("action_", StringComparison.Ordinal) && !f.StartsWith("friend_", StringComparison.Ordinal) && !f.StartsWith("exam_score_", StringComparison.Ordinal) && f != "event_resolved_for_year") == 0)
+                        {
+                            <span class="flag-chip">平平無奇 Normal</span>
+                        }
+                        else
+                        {
+                            @foreach (var flag in Session.State.FlagsSet.Where(f => !f.StartsWith("action_", StringComparison.Ordinal) && !f.StartsWith("friend_", StringComparison.Ordinal) && !f.StartsWith("exam_score_", StringComparison.Ordinal) && f != "event_resolved_for_year"))
+                            {
+                                <span class="flag-chip">@TranslateFlag(flag)</span>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column: Active actions panel tabs -->
+            <div class="glass-panel dashboard-panel">
+                <div class="tabs-header">
+                    <button type="button" class="tab-btn @(_activeTab == "home" ? "active" : string.Empty)" @onclick='() => _activeTab = "home"'>🏠 經歷 Log</button>
+                    <button type="button" class="tab-btn @(_activeTab == "career" ? "active" : string.Empty)" @onclick='() => _activeTab = "career"'>📚 事業 Study/Job</button>
+                    <button type="button" class="tab-btn @(_activeTab == "social" ? "active" : string.Empty)" @onclick='() => _activeTab = "social"'>👥 人際 Social</button>
+                    <button type="button" class="tab-btn @(_activeTab == "assets" ? "active" : string.Empty)" @onclick='() => _activeTab = "assets"'>🏡 資產 Assets</button>
+                    <button type="button" class="tab-btn @(_activeTab == "activities" ? "active" : string.Empty)" @onclick='() => _activeTab = "activities"'>🪁 活動 Activities</button>
+                </div>
+
+                <div class="tab-content">
+                    @if (_activeTab == "home")
+                    {
+                        <h4 class="section-title">📜 人生經歷與事件日誌 Event Log</h4>
+                        <div class="log-list">
+                            @if (_actionLogs.Count == 0)
+                            {
+                                <p class="text-secondary" style="text-align:center; padding-top:40px;">今年仲未開始任何行動，快啲去其他分頁探索啦！</p>
+                            }
+                            else
+                            {
+                                @foreach (var log in _actionLogs)
+                                {
+                                    <div class="log-item">@log</div>
+                                }
+                            }
+                        </div>
+                    }
+                    else if (_activeTab == "career")
+                    {
+                        <h4 class="section-title">💼 學習與工作選項 Education & Career</h4>
+                        <div class="action-grid">
+                            <!-- Childhood Actions (<18) -->
+                            @if (Session.State.Age < 18)
+                            {
+                                @if (Session.State.HasFlag("dropped_out"))
+                                {
+                                    <div class="action-card" style="grid-column: span 2;">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">🏭 廠工打雜 Factory Work</span>
+                                            <span class="action-card-limit">已退學</span>
+                                        </div>
+                                        <p class="action-card-desc">你被迫離開學校，每日喺工廠裝配玩具/塑膠花以賺錢幫補家用。</p>
+                                        <p class="action-card-effects">健康 -3 · 壓力 +4 · 金錢 +${{FormatAmount(Session.ScaleMoney(1000))}}</p>
+                                        <button type="button" class="primary-button action-button" disabled="@Session.IsBusy" @onclick="WorkHardAsync">💼 努力做工 Work</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">努力學習 Study Hard</span>
+                                            <span class="action-card-limit">@(Session.State.HasFlag("action_studied") ? "0/1" : "1/1")</span>
+                                        </div>
+                                        <p class="action-card-desc">努力溫習學校功課，為派位同考試打好基礎。</p>
+                                        <p class="action-card-effects">學歷 +5 · 壓力 +3</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_studied") || Session.IsBusy)" @onclick="StudyHardAsync">📚 溫書 Study</button>
+                                    </div>
+
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">報讀補習班 Attend Tutoring</span>
+                                            @{
+                                                var tutorCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_tutor_", StringComparison.Ordinal));
+                                                var remainingTutors = 2 - tutorCount;
+                                            }
+                                            <span class="action-card-limit">@remainingTutors/2</span>
+                                        </div>
+                                        <p class="action-card-desc">參加名師補習班，全面練習試題以取得優異成績。</p>
+                                        <p class="action-card-effects cost">學歷 +10 · 壓力 +1 · 金錢 -${{FormatAmount(Session.ScaleMoney(2000))}}</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(remainingTutors <= 0 || Session.State.Stats.Money < Session.ScaleMoney(2000) || Session.IsBusy)" @onclick="AttendTutoringAsync">✏️ 補習 Tutor</button>
+                                    </div>
+
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">玩耍打機 Play Games</span>
+                                            @{
+                                                var playCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_play_", StringComparison.Ordinal));
+                                                var remainingPlays = 2 - playCount;
+                                            }
+                                            <span class="action-card-limit">@remainingPlays/2</span>
+                                        </div>
+                                        <p class="action-card-desc">放學後打機或買玩具玩耍，極大放鬆心情。</p>
+                                        <p class="action-card-effects">健康 +2 · 壓力 -5 · 親情 -1</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(remainingPlays <= 0 || Session.IsBusy)" @onclick="PlayGamesAsync">🧸 玩耍 Play</button>
+                                    </div>
+
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">索取零用錢 Allowance</span>
+                                            <span class="action-card-limit">@(Session.State.HasFlag("action_allowance") ? "0/1" : "1/1")</span>
+                                        </div>
+                                        <p class="action-card-desc">向爸媽扭計索取少量零用錢以購買玩具或零食。(成功率 70%)</p>
+                                        <p class="action-card-effects">獲得零錢 (金額由家庭背景決定) (若失敗：壓力 +2)</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_allowance") || Session.IsBusy)" @onclick="AskAllowanceAsync">💰 扭零用錢 Pocket Money</button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <!-- Adult Actions (18+) -->
+                                @if (IsStudent())
+                                {
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">努力學習 Study Hard</span>
+                                            <span class="action-card-limit">@(Session.State.HasFlag("action_studied") ? "0/1" : "1/1")</span>
+                                        </div>
+                                        <p class="action-card-desc">通宵達旦溫書，提升你嘅學力，但會增加壓力。</p>
+                                        <p class="action-card-effects">學歷 +5 · 壓力 +3</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_studied") || Session.IsBusy)" @onclick="StudyHardAsync">📚 溫書 Study</button>
+                                    </div>
+
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">報讀補習班 Attend Tutoring</span>
+                                            @{
+                                                var tutorCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_tutor_", StringComparison.Ordinal));
+                                                var remainingTutors = 2 - tutorCount;
+                                            }
+                                            <span class="action-card-limit">@remainingTutors/2</span>
+                                        </div>
+                                        <p class="action-card-desc">報讀升學補習班，全面提升考試能力與分數。</p>
+                                        <p class="action-card-effects cost">學歷 +10 · 壓力 +1 · 金錢 -${{FormatAmount(Session.ScaleMoney(2000))}}</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(remainingTutors <= 0 || Session.State.Stats.Money < Session.ScaleMoney(2000) || Session.IsBusy)" @onclick="AttendTutoringAsync">✏️ 補習 Tutor</button>
+                                    </div>
+                                }
+
+                                @if (IsWorker())
+                                {
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">努力工作 Work Hard</span>
+                                            <span class="action-card-limit">@(Session.State.HasFlag("action_worked") ? "0/1" : "1/1")</span>
+                                        </div>
+                                        <p class="action-card-desc">努力加班工作，獲得老細賞識，爭取表現花紅。</p>
+                                        <p class="action-card-effects">聲望 +3 · 壓力 +4 · 金錢 +${{FormatAmount(Session.ScaleMoney(1500))}}</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_worked") || Session.IsBusy)" @onclick="WorkHardAsync">💼 OT加班 Work</button>
+                                    </div>
+                                }
+                            }
+
+                            @if (Session.State.Age >= 18)
+                            {
+                                <!-- Gig Work Action (18+) -->
+                                <div class="action-card">
+                                    <div class="action-card-header">
+                                        <span class="action-card-title">兼職炒散 Gig Work</span>
+                                        @{
+                                            var gigCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_gig_", StringComparison.Ordinal));
+                                            var remainingGigs = 3 - gigCount;
+                                        }
+                                        <span class="action-card-limit">@remainingGigs/3</span>
+                                    </div>
+                                    <p class="action-card-desc">空餘時間送外賣或兼職，換取額外零用錢，但會損害健康。</p>
+                                    <p class="action-card-effects cost">健康 -2 · 壓力 +4 · 金錢 +${{FormatAmount(Session.ScaleMoney(1000))}}</p>
+                                    <button type="button" class="primary-button action-button" disabled="@(remainingGigs <= 0 || Session.IsBusy)" @onclick="GigWorkAsync">🛵 炒散 Gig</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (_activeTab == "social")
+                    {
+                        <h4 class="section-title">👪 人際關係與社交 Socializing</h4>
+                        <div class="action-grid">
+                            <!-- Spend time with Family -->
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">與家人同樂 Family Time</span>
+                                    <span class="action-card-limit">@(Session.State.HasFlag("action_family_chat") ? "0/1" : "1/1")</span>
+                                </div>
+                                <p class="action-card-desc">陪伴家人聊天吃飯，增進親情，減輕壓力。</p>
+                                <p class="action-card-effects">親情 +8 · 壓力 -3</p>
+                                <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_family_chat") || Session.IsBusy)" @onclick="SpendFamilyTimeAsync">👪 陪屋企人 Chat</button>
+                            </div>
+
+                            <!-- Buy gift for Family -->
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">給家人送禮 Buy Family Gift</span>
+                                    @{
+                                        var familyGiftCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_family_gift_", StringComparison.Ordinal));
+                                        var remainingFamilyGifts = 2 - familyGiftCount;
+                                    }
+                                    <span class="action-card-limit">@remainingFamilyGifts/2</span>
+                                </div>
+                                <p class="action-card-desc">給家人買一份禮物表達心意，極大提升親情。</p>
+                                <p class="action-card-effects cost">親情 +15 · 壓力 -2 · 金錢 -${{FormatAmount(Session.ScaleMoney(1000))}}</p>
+                                <button type="button" class="primary-button action-button" disabled="@(remainingFamilyGifts <= 0 || Session.State.Stats.Money < Session.ScaleMoney(1000) || Session.IsBusy)" @onclick="BuyFamilyGiftAsync">🎁 送禮物 Gift</button>
+                            </div>
+
+                            @if (Session.State.Age >= 16)
+                            {
+                                <!-- Relationship logic (16+) -->
+                                @if (!Session.State.HasFlag("has_partner"))
+                                {
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">尋找伴侶 Find Love</span>
+                                            @{
+                                                var partnerFindCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_partner_find_", StringComparison.Ordinal));
+                                                var remainingPartnerFinds = 2 - partnerFindCount;
+                                            }
+                                            <span class="action-card-limit">@remainingPartnerFinds/2</span>
+                                        </div>
+                                        <p class="action-card-desc">約會心儀對象並嘗試表白出Pool！(成功率 50%)</p>
+                                        <p class="action-card-effects">有機會獲得伴侶狀態</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(remainingPartnerFinds <= 0 || Session.IsBusy)" @onclick="FindPartnerAsync">💖 表白出Pool Propose</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">與伴侶約會 Date Partner</span>
+                                            @{
+                                                var partnerDateCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_partner_date_", StringComparison.Ordinal));
+                                                var remainingPartnerDates = 2 - partnerDateCount;
+                                            }
+                                            <span class="action-card-limit">@remainingPartnerDates/2</span>
+                                        </div>
+                                        <p class="action-card-desc">和另一半甜蜜拍拖去街，極大放鬆心情。</p>
+                                        <p class="action-card-effects cost">親情 +6 · 壓力 -5 · 金錢 -${{FormatAmount(Session.ScaleMoney(800))}}</p>
+                                        <button type="button" class="primary-button action-button" disabled="@(remainingPartnerDates <= 0 || Session.State.Stats.Money < Session.ScaleMoney(800) || Session.IsBusy)" @onclick="DatePartnerAsync">🌹 拍拖 Date</button>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <!-- Friends list comparison -->
+                        <h4 class="section-title" style="margin-top: 24px;">👫 好友系統 (P2P Share Code)</h4>
+                        <div class="glass-panel" style="margin-bottom:16px; background: rgba(0,0,0,0.2);">
+                            <div class="field-row" style="gap:10px; margin-bottom:12px;">
+                                <input @bind="_shareCodeInput" placeholder="貼上朋友嘅分享代碼..." class="text-input" style="flex-grow:1; max-width:none;" />
+                                <button type="button" class="primary-button" style="min-height:44px;" @onclick="ImportFriend">➕ 新增 Add</button>
+                            </div>
+                            <button type="button" class="primary-button secondary-btn" style="width:100%; min-height:40px;" @onclick="ExportMyCode">📤 複製我嘅角色代碼 Copy My Code</button>
+                            
+                            @if (_friendFeedback is not null)
+                            {
+                                <p style="color:var(--accent); font-size:0.9rem; margin-top:8px; font-weight:600; text-align:center;">@_friendFeedback</p>
+                            }
+                        </div>
+
+                        <div class="action-grid">
+                            @foreach (var flag in Session.State.FlagsSet.Where(f => f.StartsWith("friend_", StringComparison.Ordinal)))
+                            {
+                                var parts = flag.Split('_');
+                                if (parts.Length >= 7)
+                                {
+                                    var fName = parts[1];
+                                    var fAge = parts[2];
+                                    var fMoney = int.Parse(parts[3], System.Globalization.CultureInfo.InvariantCulture);
+                                    var fRep = parts[4];
+                                    var fEdu = parts[5];
+                                    var fEra = parts[6];
+
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">👫 好友: @fName</span>
+                                            <span class="action-card-limit">@fAge 歲 (@(fEra == "2024plus" ? "現代" : fEra))</span>
+                                        </div>
+                                        <p class="action-card-desc" style="font-size:0.85rem; line-height:1.5; color:var(--text-secondary);">
+                                            💰 財產: $@FormatAmount(fMoney) <br/>
+                                            🎓 學歷學識: @fEdu / 100 <br/>
+                                            🏆 社會聲望: @fRep / 100
+                                        </p>
+                                        <p class="action-card-effects" style="font-size:0.8rem; margin-bottom:0;">
+                                            @(fMoney > Session.State.Stats.Money ? "⚠️ 朋友比你更富有！" : "😎 你比朋友更富有！")
+                                        </p>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                    else if (_activeTab == "assets")
+                    {
+                        <h4 class="section-title">🏡 房產購置與套現 Assets</h4>
+                        @if (Session.State.Age < 18)
+                        {
+                            <p class="text-secondary" style="text-align:center; padding-top:40px;">未滿 18 歲禁止購置物業。先專心讀書/玩啦！</p>
+                        }
+                        else
+                        {
+                            <div class="properties-list">
+                                <!-- Tier 1 Property: Tong Lau or Public Housing -->
+                                <div class="property-item">
+                                    <div class="property-details">
+                                        <div class="property-name">@(IsModernEra() ? "公屋單位 Public Housing" : "舊區唐樓單位 Tong Lau")</div>
+                                        <div class="property-price">購置預算 Cost: ${{FormatAmount((int)(Session.Era?.AverageHousePrice * 0.5m ?? 0m))}}</div>
+                                        @if (Session.State.HasFlag("home_tonglau"))
+                                        {
+                                            <div class="property-status">持有中 Owned</div>
+                                        }
+                                    </div>
+                                    <div class="property-actions">
+                                        @if (Session.State.HasFlag("home_tonglau"))
+                                        {
+                                            <button type="button" class="primary-button action-btn" style="background:var(--stress); border-color:var(--stress); color:#fff;" disabled="@Session.IsBusy" @onclick='() => SellPropertyAsync("tonglau")'>賣出 Sell</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="primary-button action-btn" disabled="@(Session.State.HasFlag("homeowner") || Session.State.Stats.Money < (int)(Session.Era?.AverageHousePrice * 0.5m ?? 0m) || Session.IsBusy)" @onclick='() => BuyPropertyAsync("tonglau")'>購買 Buy</button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Tier 2 Property: Private Apartment -->
+                                <div class="property-item">
+                                    <div class="property-details">
+                                        <div class="property-name">市區私人住宅 Private Apartment</div>
+                                        <div class="property-price">購置預算 Cost: ${{FormatAmount((int)(Session.Era?.AverageHousePrice ?? 0m))}}</div>
+                                        @if (Session.State.HasFlag("home_private"))
+                                        {
+                                            <div class="property-status">持有中 Owned</div>
+                                        }
+                                    </div>
+                                    <div class="property-actions">
+                                        @if (Session.State.HasFlag("home_private"))
+                                        {
+                                            <button type="button" class="primary-button action-btn" style="background:var(--stress); border-color:var(--stress); color:#fff;" disabled="@Session.IsBusy" @onclick='() => SellPropertyAsync("private")'>賣出 Sell</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="primary-button action-btn" disabled="@(Session.State.HasFlag("homeowner") || Session.State.Stats.Money < (int)(Session.Era?.AverageHousePrice ?? 0m) || Session.IsBusy)" @onclick='() => BuyPropertyAsync("private")'>購買 Buy</button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Tier 3 Property: Luxury Villa -->
+                                <div class="property-item">
+                                    <div class="property-details">
+                                        <div class="property-name">半山頂級豪宅 Luxury Villa</div>
+                                        <div class="property-price">購置預算 Cost: ${{FormatAmount((int)(Session.Era?.AverageHousePrice * 2.5m ?? 0m))}}</div>
+                                        @if (Session.State.HasFlag("home_luxury"))
+                                        {
+                                            <div class="property-status">持有中 Owned</div>
+                                        }
+                                    </div>
+                                    <div class="property-actions">
+                                        @if (Session.State.HasFlag("home_luxury"))
+                                        {
+                                            <button type="button" class="primary-button action-btn" style="background:var(--stress); border-color:var(--stress); color:#fff;" disabled="@Session.IsBusy" @onclick='() => SellPropertyAsync("luxury")'>賣出 Sell</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="primary-button action-btn" disabled="@(Session.State.HasFlag("homeowner") || Session.State.Stats.Money < (int)(Session.Era?.AverageHousePrice * 2.5m ?? 0m) || Session.IsBusy)" @onclick='() => BuyPropertyAsync("luxury")'>購買 Buy</button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else if (_activeTab == "activities")
+                    {
+                        <h4 class="section-title">🪁 其他日常活動 Activities</h4>
+                        <div class="action-grid">
+                            <!-- Buy Lottery -->
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">買六合彩 Mark Six</span>
+                                    @{
+                                        var lotteryCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_lottery_", StringComparison.Ordinal));
+                                        var remainingLotteries = 5 - lotteryCount;
+                                    }
+                                    <span class="action-card-limit">@remainingLotteries/5</span>
+                                </div>
+                                <p class="action-card-desc">購買一張六合彩票，博取中頭獎白手興家嘅機會！</p>
+                                <p class="action-card-effects cost">金錢 -20 (固定) · 隨機中獎</p>
+                                <button type="button" class="primary-button action-button" disabled="@(remainingLotteries <= 0 || Session.IsBusy)" @onclick="BuyLotteryAsync">🎯 買彩票 Play</button>
+                            </div>
+
+                            <!-- Go Gym -->
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">做健身 Go Gym</span>
+                                    @{
+                                        var gymCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_gym_", StringComparison.Ordinal));
+                                        var remainingGyms = 2 - gymCount;
+                                    }
+                                    <span class="action-card-limit">@remainingGyms/2</span>
+                                </div>
+                                <p class="action-card-desc">去健身房做運動，提升體能，釋放生活壓力。</p>
+                                <p class="action-card-effects cost">健康 +6 · 壓力 -3 · 金錢 -${{FormatAmount(Session.ScaleMoney(200))}}</p>
+                                <button type="button" class="primary-button action-button" disabled="@(remainingGyms <= 0 || Session.State.Stats.Money < Session.ScaleMoney(200) || Session.IsBusy)" @onclick="GoGymAsync">🏋️ 做運動 Gym</button>
+                            </div>
+
+                            <!-- Visit Doctor -->
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">睇醫生 Visit Doctor</span>
+                                    <span class="action-card-limit">無限制</span>
+                                </div>
+                                <p class="action-card-desc">去看私家醫生，調理身體，快速恢復健康值。</p>
+                                <p class="action-card-effects cost">健康 +15 · 壓力 -2 · 金錢 -${{FormatAmount(Session.ScaleMoney(800))}}</p>
+                                <button type="button" class="primary-button action-button" disabled="@(Session.State.Stats.Money < Session.ScaleMoney(800) || Session.IsBusy)" @onclick="VisitDoctorAsync">🩺 診所睇病 Doctor</button>
+                            </div>
+
+                            <!-- Emigrate -->
+                            @if (!Session.State.HasFlag("emigrated") && Session.State.Age >= 18)
+                            {
+                                <div class="action-card" style="grid-column: span 2;">
+                                    <div class="action-card-header">
+                                        <span class="action-card-title">海外移民 Emigrate Overseas</span>
+                                        <span class="action-card-limit">一生一次</span>
+                                    </div>
+                                    <p class="action-card-desc">離開香港，申請移民海外（可選擇英/澳/加/美）。需要支付大筆手續費與資金。</p>
+                                    <p class="action-card-effects cost">聲望 +5 · 壓力 +8 · 金錢 -${{FormatAmount(Session.ScaleMoney(50000))}}</p>
+                                    <div class="country-selector">
+                                        <button type="button" class="primary-button" style="min-height:36px;" disabled="@(Session.State.Stats.Money < Session.ScaleMoney(50000) || Session.IsBusy)" @onclick='() => EmigrateAsync("UK")'>🇬🇧 英國 UK</button>
+                                        <button type="button" class="primary-button" style="min-height:36px;" disabled="@(Session.State.Stats.Money < Session.ScaleMoney(50000) || Session.IsBusy)" @onclick='() => EmigrateAsync("Australia")'>🇦🇺 澳洲 Australia</button>
+                                        <button type="button" class="primary-button" style="min-height:36px;" disabled="@(Session.State.Stats.Money < Session.ScaleMoney(50000) || Session.IsBusy)" @onclick='() => EmigrateAsync("Canada")'>🇨🇦 加拿大 Canada</button>
+                                        <button type="button" class="primary-button" style="min-height:36px;" disabled="@(Session.State.Stats.Money < Session.ScaleMoney(50000) || Session.IsBusy)" @onclick='() => EmigrateAsync("US")'>🇺🇸 美國 US</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Bottom Advance Year Button -->
+        <div class="advance-year-bar">
+            <button type="button"
+                    class="advance-year-btn"
+                    disabled="@(Session.CurrentEvent is not null || Session.IsBusy)"
+                    @onclick="AdvanceYearAsync">
+                ⏳ 長大一歲 Age +1
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private string _activeTab = "home";
+    private List<string> _actionLogs = [];
+    private string? _actionFeedback;
+    
+    // Friend Share System Fields
+    private string _shareCodeInput = string.Empty;
+    private string? _friendFeedback;
+    
+    // Milestones Exam overlay state
+    private string? _activeMilestone;
+
+    // Exam Trivia States
+    private bool _showExamTrivia = false;
+    private int _triviaQ1Answer = -1;
+    private int _triviaQ2Answer = -1;
+    private string? _triviaError;
+
+    private bool IsStreamSelectionRequired => Session.State is not null && Session.State.Age == 15 && !Session.State.HasFlag("dropped_out") && !Session.State.HasFlag("stream_science") && !Session.State.HasFlag("stream_business") && !Session.State.HasFlag("stream_arts");
+    
+    private bool IsCollegeSelectionRequired => Session.State is not null && Session.State.HasFlag("college_student") && !Session.State.HasFlag("college_asso") && !Session.State.HasFlag("college_hd");
+
+    protected override void OnInitialized()
+    {
+        if (Session.State is null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        Session.Changed += OnSessionChanged;
+        
+        // Populate existing action logs if state has records
+        _actionLogs.Clear();
+        
+        CheckMilestone();
+    }
+
+    private void CheckMilestone()
+    {
+        if (Session.MilestoneMessage is not null)
+        {
+            _activeMilestone = Session.MilestoneMessage;
+            Session.MilestoneMessage = null;
+        }
+    }
+
+    private void ClearMilestone()
+    {
+        _activeMilestone = null;
+        StateHasChanged();
+    }
+
+    private string TranslateFlag(string flag)
+    {
+        return flag switch
+        {
+            "university_student" => "🎓 本地大學生",
+            "overseas_student" => "✈️ 海外留學生",
+            "early_worker" => "💼 職場打工仔",
+            "dropped_out" => "❌ 中途退學",
+            "has_partner" => "💖 戀愛中 (出Pool)",
+            "homeowner" => "🏡 業主",
+            "home_tonglau" => "🏚️ 唐樓/公屋業主",
+            "home_private" => "🏢 私人屋苑業主",
+            "home_luxury" => "🏰 半山豪宅業主",
+            "emigrated" => "✈️ 已移民海外",
+            "emigrated_uk" => "🇬🇧 定居英國",
+            "emigrated_australia" => "🇦🇺 定居澳洲",
+            "emigrated_canada" => "🇨🇦 定居加拿大",
+            "emigrated_us" => "🇺🇸 定居美國",
+            "stream_science" => "🧪 選修：理科 Science",
+            "stream_business" => "📈 選修：商科 Business",
+            "stream_arts" => "📜 選修：文科 Arts",
+            "college_asso" => "🎨 大專：副學士 Asso",
+            "college_hd" => "💻 大專：高級文憑 HD",
+            _ => flag
+        };
+    }
+
+    private bool IsStudent()
+    {
+        if (Session.State is null) return false;
+        return Session.State.Age < 23 && (Session.State.HasFlag("university_student") || Session.State.HasFlag("overseas_student") || Session.State.HasFlag("college_student"));
+    }
+
+    private bool IsWorker()
+    {
+        if (Session.State is null) return false;
+        return Session.State.Age >= 18 && !Session.State.HasFlag("university_student") && !Session.State.HasFlag("overseas_student") && !Session.State.HasFlag("college_student");
+    }
+
+    private bool IsModernEra()
+    {
+        if (Session.Era is null) return false;
+        return Session.Era.EraId == "2000s" || Session.Era.EraId == "2024plus";
+    }
+
+    private string FormatAmount(int amount)
+    {
+        return $"{amount:N0}";
+    }
+
+    private async Task SelectChoiceAsync(string choiceId)
+    {
+        _actionFeedback = null;
+        await Session.SelectChoiceAsync(choiceId);
+
+        if (Session.State is { IsAlive: false })
+        {
+            Nav.NavigateTo("/obituary");
+        }
+    }
+
+    private async Task AdvanceYearAsync()
+    {
+        _actionFeedback = null;
+
+        // If at age 17 and has not taken exam trivia questions, intercept to display it
+        if (Session.State is not null && Session.State.Age == 17 && !Session.State.HasFlag("dropped_out") && !_showExamTrivia)
+        {
+            _showExamTrivia = true;
+            _triviaQ1Answer = -1;
+            _triviaQ2Answer = -1;
+            _triviaError = null;
+            return;
+        }
+
+        _actionLogs.Clear(); // reset action logs for the new year
+        await Session.AdvanceYearAsync();
+
+        if (Session.State is { IsAlive: false })
+        {
+            Nav.NavigateTo("/obituary");
+        }
+        else
+        {
+            CheckMilestone();
+        }
+    }
+
+    private async Task SubmitExamTrivia()
+    {
+        if (_triviaQ1Answer == -1 || _triviaQ2Answer == -1)
+        {
+            _triviaError = "請完成所有試題！";
+            return;
+        }
+
+        var correctCount = (_triviaQ1Answer == 0 ? 1 : 0) + (_triviaQ2Answer == 0 ? 1 : 0);
+        if (correctCount == 1)
+        {
+            Session.State?.SetFlag("exam_bonus_1");
+        }
+        else if (correctCount == 2)
+        {
+            Session.State?.SetFlag("exam_bonus_2");
+        }
+
+        _showExamTrivia = false;
+        _triviaError = null;
+
+        // Proceed to year advancement
+        _actionLogs.Clear();
+        await Session.AdvanceYearAsync();
+
+        if (Session.State is { IsAlive: false })
+        {
+            Nav.NavigateTo("/obituary");
+        }
+        else
+        {
+            CheckMilestone();
+        }
+    }
+
+    private void ChooseStream(string stream)
+    {
+        if (Session.State is null) return;
+        Session.State.SetFlag($"stream_{stream}");
+        var streamName = stream switch {
+            "science" => "理科 Science",
+            "business" => "商科 Business",
+            "arts" => "文科 Arts",
+            _ => "選修科"
+        };
+        AddLog($"你選擇咗選修：{streamName}，開始衝刺公開試！");
+        StateHasChanged();
+    }
+
+    private void ChooseCollege(string path)
+    {
+        if (Session.State is null) return;
+        Session.State.SetFlag($"college_{path}");
+        var pathName = path == "asso" ? "副學士 Asso" : "高級文憑 HD";
+        AddLog($"你選擇就讀：{pathName}，準備爭取銜接學位！");
+        StateHasChanged();
+    }
+
+    private async Task StudyHardAsync()
+    {
+        _actionFeedback = await Session.StudyHardAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task AttendTutoringAsync()
+    {
+        _actionFeedback = await Session.AttendTutoringAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task WorkHardAsync()
+    {
+        _actionFeedback = await Session.WorkHardAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task GigWorkAsync()
+    {
+        _actionFeedback = await Session.GigWorkAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task PlayGamesAsync()
+    {
+        _actionFeedback = await Session.PlayGamesAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task AskAllowanceAsync()
+    {
+        _actionFeedback = await Session.AskAllowanceAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task SpendFamilyTimeAsync()
+    {
+        _actionFeedback = await Session.SpendFamilyTimeAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task BuyFamilyGiftAsync()
+    {
+        _actionFeedback = await Session.BuyFamilyGiftAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task FindPartnerAsync()
+    {
+        _actionFeedback = await Session.FindPartnerAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task DatePartnerAsync()
+    {
+        _actionFeedback = await Session.DatePartnerAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task BuyLotteryAsync()
+    {
+        _actionFeedback = await Session.BuyLotteryAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task GoGymAsync()
+    {
+        _actionFeedback = await Session.GoGymAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task VisitDoctorAsync()
+    {
+        _actionFeedback = await Session.VisitDoctorAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task EmigrateAsync(string country)
+    {
+        _actionFeedback = await Session.EmigrateAsync(country);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task BuyPropertyAsync(string tier)
+    {
+        _actionFeedback = await Session.BuyPropertyAsync(tier);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task SellPropertyAsync(string tier)
+    {
+        _actionFeedback = await Session.SellPropertyAsync(tier);
+        AddLog(_actionFeedback);
+    }
+
+    // Friend Share actions
+    private void ImportFriend()
+    {
+        if (string.IsNullOrWhiteSpace(_shareCodeInput))
+        {
+            _friendFeedback = "請先輸入分享代碼！";
+            return;
+        }
+        _friendFeedback = Session.ImportShareCode(_shareCodeInput);
+        _shareCodeInput = string.Empty;
+    }
+
+    private void ExportMyCode()
+    {
+        var code = Session.ExportShareCode();
+        _friendFeedback = $"複製成功！我嘅代碼為: {code}";
+    }
+
+    private void AddLog(string msg)
+    {
+        if (Session.State is null) return;
+        if (msg.Contains("唔夠錢") || msg.Contains("已經") || msg.Contains("無效狀態") || msg.Contains("夠多啦") || msg.Contains("適可而止") || msg.Contains("強求"))
+        {
+            // Do not log failure actions into history
+            return;
+        }
+        _actionLogs.Insert(0, $"{Session.State.CurrentYear}年 ({Session.State.Age}歲): {msg}");
+        StateHasChanged();
+    }
+
+    // Childhood custom event wrappers
+    private string GetChildhoodEventTitle()
+    {
+        return "🎈 童年生活 Childhood";
+    }
+
+    private string GetChildhoodEventBody(int age)
+    {
+        if (age < 12)
+        {
+            return $"你喺小學過著無憂無慮嘅生活。今日放學，你決定做咩？ (現年 {age} 歲)";
+        }
+        else
+        {
+            return $"中學生活課業壓力漸漸大咗，老師開始督促大家。今日放學，你想點？ (現年 {age} 歲)";
+        }
+    }
+
+    private string GetChildhoodChoiceText(string choiceId, int age)
+    {
+        return choiceId switch
+        {
+            "relax_at_home" => age < 12 ? "🧸 喺屋企玩積木/畫畫" : "🎮 留喺房打機放鬆",
+            "hang_out_with_friends" => age < 12 ? "🏃 同鄰居細路玩捉迷藏" : "🛍️ 同同學去商場打卡行街",
+            "work_overtime" => age < 12 ? "📝 乖乖溫書做功課" : "📖 去圖書館/自修室備考",
+            _ => "做自己嘢"
+        };
+    }
+
+    // Trivia Questions Methods
+    private string GetTriviaQuestion(int qIndex)
+    {
+        if (Session.State is null) return string.Empty;
+        var isScience = Session.State.HasFlag("stream_science");
+        var isBusiness = Session.State.HasFlag("stream_business");
+        var isArts = Session.State.HasFlag("stream_arts");
+
+        if (isScience)
+        {
+            return qIndex == 1 
+                ? "中學物理：萬有引力定律係由邊位科學家提出？" 
+                : "中學化學：水分子 (Water) 嘅基本化學分子式係？";
+        }
+        else if (isBusiness)
+        {
+            return qIndex == 1
+                ? "中學經濟：在供求定律中，當市場需求增加而供應不變時，均衡價格會？"
+                : "中學會計：本金$10,000，年利率10%以複利計算，兩年後的本利和為？";
+        }
+        else if (isArts)
+        {
+            return qIndex == 1
+                ? "中學歷史：清朝政府與英國簽署《南京條約》，香港島是在哪一年開埠？"
+                : "中學文學：三國演義中，「桃園三結義」是指劉備、關羽與哪位將領？";
+        }
+        else
+        {
+            return qIndex == 1
+                ? "香港常識：香港特別行政區成立於哪一年？"
+                : "地理常識：香港地標「獅子山」座落於邊兩個地區之分界？";
+        }
+    }
+
+    private string GetTriviaOption(int qIndex, int optionIndex)
+    {
+        if (Session.State is null) return string.Empty;
+        var isScience = Session.State.HasFlag("stream_science");
+        var isBusiness = Session.State.HasFlag("stream_business");
+        var isArts = Session.State.HasFlag("stream_arts");
+
+        if (isScience)
+        {
+            if (qIndex == 1)
+            {
+                return optionIndex switch { 0 => "牛頓 Isaac Newton", 1 => "愛因斯坦 Albert Einstein", _ => "伽利略 Galileo Galilei" };
+            }
+            else
+            {
+                return optionIndex switch { 0 => "H2O", 1 => "CO2", _ => "NaCl" };
+            }
+        }
+        else if (isBusiness)
+        {
+            if (qIndex == 1)
+            {
+                return optionIndex switch { 0 => "上升 Rise", 1 => "下跌 Fall", _ => "維持不變 Unchanged" };
+            }
+            else
+            {
+                return optionIndex switch { 0 => "$12,100", 1 => "$12,000", _ => "$11,000" };
+            }
+        }
+        else if (isArts)
+        {
+            if (qIndex == 1)
+            {
+                return optionIndex switch { 0 => "1841 年", 1 => "1911 年", _ => "1997 年" };
+            }
+            else
+            {
+                return optionIndex switch { 0 => "張飛 Zhang Fei", 1 => "趙雲 Zhao Yun", _ => "諸葛亮 Zhuge Liang" };
+            }
+        }
+        else
+        {
+            if (qIndex == 1)
+            {
+                return optionIndex switch { 0 => "1997 年", 1 => "1984 年", _ => "2003 年" };
+            }
+            else
+            {
+                return optionIndex switch { 0 => "九龍與新界之間", 1 => "港島南部", _ => "大嶼山及長洲" };
+            }
+        }
+    }
+
+    private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}

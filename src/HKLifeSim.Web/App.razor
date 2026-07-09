@@ -1,0 +1,31 @@
+@inject GameSessionService Session
+
+@if (!Session.IsLoaded)
+{
+    <div class="loading-screen">
+        <p>載入遊戲內容中... Loading game content...</p>
+    </div>
+}
+else if (Session.LoadErrorMessage is not null)
+{
+    <div class="loading-screen error">
+        <h1>內容載入失敗 Content failed to load</h1>
+        <p>@Session.LoadErrorMessage</p>
+    </div>
+}
+else
+{
+    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+    </Router>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Session.InitializeAsync();
+    }
+}

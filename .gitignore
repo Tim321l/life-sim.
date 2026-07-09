@@ -32,3 +32,7 @@ publish/
 
 ## Local save data (dev-time playtesting)
 saves/
+
+## HKLifeSim.Web: era/event JSON is mirrored into wwwroot/data/ at build time from the
+## repo's single source of truth (data/) — see HKLifeSim.Web.csproj.
+src/HKLifeSim.Web/wwwroot/data/

@@ -1,0 +1,111 @@
+@page "/obituary"
+@inject GameSessionService Session
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@if (Session.State is not null && Session.LastLegacy is not null)
+{
+    <div class="obituary-page">
+        <div class="obituary-logo">🕯️</div>
+        <h1 class="obituary-title">訃聞 Obituary</h1>
+        <p class="obituary-age">享年 @Session.State.Age 歲 (Age @Session.State.Age)</p>
+        <p class="obituary-cause">死因：@DeathCauseTranslator.Translate(Session.State.DeathCause)</p>
+
+        <div class="stats-card">
+            <p class="card-title">📊 最終一生數值 Final Stats</p>
+            <div class="summary-row">
+                <span class="summary-label">金錢 Money</span>
+                <span class="summary-val" style="color: var(--money); font-weight: bold;">$@Session.State.Stats.Money.ToString("N0")</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">健康 Health</span>
+                <span class="summary-val">@Session.State.Stats.Health</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">壓力 Stress</span>
+                <span class="summary-val">@Session.State.Stats.Stress</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">親情 FamilyBond</span>
+                <span class="summary-val">@Session.State.Stats.FamilyBond</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">學歷 Education</span>
+                <span class="summary-val">@Session.State.Stats.Education</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">聲望 Reputation</span>
+                <span class="summary-val">@Session.State.Stats.Reputation</span>
+            </div>
+            <div class="summary-row" style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                <span class="summary-label">經歷事件 Events</span>
+                <span class="summary-val">@Session.State.EventHistory.Count</span>
+            </div>
+        </div>
+
+        <p class="card-title" style="text-align: center;">🏆 人生成就 Flags</p>
+        <div class="flag-chips">
+            @if (Session.State.FlagsSet.Count == 0)
+            {
+                <span class="flag-chip">無消無息 Normal Life</span>
+            }
+            else
+            {
+                @foreach (var flag in Session.State.FlagsSet.Where(f => !f.StartsWith("action_", StringComparison.Ordinal) && f != "event_resolved_for_year"))
+                {
+                    <span class="flag-chip">@TranslateFlag(flag)</span>
+                }
+            }
+        </div>
+
+        <div class="obituary-actions" style="margin-top: 24px;">
+            <button type="button" class="primary-button action-btn" @onclick="StartNextGeneration">👶 開展下一代 Next Gen</button>
+            <button type="button" class="primary-button action-btn secondary-btn" @onclick="Restart">🔄 重新開始 Restart</button>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (Session.State is null)
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+
+    private void StartNextGeneration()
+    {
+        Session.StartNextGeneration();
+        Nav.NavigateTo("/game");
+    }
+
+    private void Restart() => Nav.NavigateTo("/");
+
+    private string TranslateFlag(string flag)
+    {
+        return flag switch
+        {
+            "university_student" => "🎓 本地大學生",
+            "overseas_student" => "✈️ 海外留學生",
+            "early_worker" => "💼 職場打工仔",
+            "dropped_out" => "❌ 中途退學",
+            "has_partner" => "💖 戀愛中 (出Pool)",
+            "homeowner" => "🏡 業主",
+            "home_tonglau" => "🏚️ 唐樓/公屋業主",
+            "home_private" => "🏢 私人屋苑業主",
+            "home_luxury" => "🏰 半山豪宅業主",
+            "emigrated" => "✈️ 已移民海外",
+            "emigrated_uk" => "🇬🇧 定居英國",
+            "emigrated_australia" => "🇦🇺 定居澳洲",
+            "emigrated_canada" => "🇨🇦 定居加拿大",
+            "emigrated_us" => "🇺🇸 定居美國",
+            _ => flag
+        };
+    }
+
+    private async Task ExitAsync()
+    {
+        await JS.InvokeVoidAsync("window.close");
+    }
+}

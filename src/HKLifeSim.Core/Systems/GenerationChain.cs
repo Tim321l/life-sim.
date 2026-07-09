@@ -44,7 +44,7 @@ public sealed class GenerationChain
         {
             PlayerId = Guid.NewGuid().ToString("N"),
             EraId = targetEra.EraId,
-            Age = 18,
+            Age = 6,
             CurrentYear = targetEra.StartYear,
             Stats = StatBlock.CreateStarting(targetEra, legacy),
             RngSeed = seed,

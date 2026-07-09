@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!-- CA1812: Services/components here are constructed by the DI container and Blazor's
+         Router, which the analyzer can't see. -->
+    <NoWarn>$(NoWarn);CA1812</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HKLifeSim.Core\HKLifeSim.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Blazor's static web asset discovery scans wwwroot/ at build time, before any
+       CopyToOutputDirectory step runs, so era/event JSON must be physically present under
+       wwwroot/data/ (not just linked into the output dir) to be served by the dev server
+       or published output. Mirror the repo's single source of truth (data/) in here. -->
+  <Target Name="CopyGameContentIntoWwwroot" BeforeTargets="BeforeBuild;DispatchToInnerBuilds">
+    <ItemGroup>
+      <GameContentJson Include="..\..\data\**\*.json" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(GameContentJson)"
+      DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\data"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

@@ -25,7 +25,7 @@ public sealed class GenerationChainTests
 
         var state = chain.StartNextGeneration(Era1960s, seed: 1);
 
-        state.Age.Should().Be(18);
+        state.Age.Should().Be(6);
         state.EraId.Should().Be("1960s");
         state.Stats.Money.Should().Be(300);
         state.InheritedLegacy.Should().BeNull();
