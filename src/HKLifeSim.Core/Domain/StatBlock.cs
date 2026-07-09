@@ -8,6 +8,20 @@ public readonly record struct StatBlock(
     int Education,
     int Reputation)
 {
+    public static readonly IReadOnlyCollection<string> StatNames =
+        ["Money", "Health", "Stress", "FamilyBond", "Education", "Reputation"];
+
+    public int GetStat(string statName) => statName switch
+    {
+        "Money" => Money,
+        "Health" => Health,
+        "Stress" => Stress,
+        "FamilyBond" => FamilyBond,
+        "Education" => Education,
+        "Reputation" => Reputation,
+        _ => throw new ArgumentException($"Unknown stat name '{statName}'.", nameof(statName)),
+    };
+
     public static StatBlock CreateStarting(EraConfig era, LegacyRecord? legacy)
     {
         ArgumentNullException.ThrowIfNull(era);

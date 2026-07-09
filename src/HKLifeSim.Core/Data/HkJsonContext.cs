@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using HKLifeSim.Core.Domain;
+using HKLifeSim.Core.Events;
 using HKLifeSim.Core.Persistence;
 
 namespace HKLifeSim.Core.Data;
@@ -11,7 +12,13 @@ namespace HKLifeSim.Core.Data;
 [JsonSerializable(typeof(SaveEnvelope))]
 [JsonSerializable(typeof(GameState))]
 [JsonSerializable(typeof(StatBlock))]
+[JsonSerializable(typeof(StatDelta))]
 [JsonSerializable(typeof(EraConfig))]
 [JsonSerializable(typeof(LegacyRecord))]
 [JsonSerializable(typeof(CharacterProfile))]
+[JsonSerializable(typeof(GameEvent))]
+[JsonSerializable(typeof(EventChoice))]
+[JsonSerializable(typeof(EventCondition))]
+[JsonSerializable(typeof(EraFile))]
+[JsonSerializable(typeof(EventFile))]
 public sealed partial class HkJsonContext : JsonSerializerContext;

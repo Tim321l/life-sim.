@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HKLifeSim.Core.Tests", "tests\HKLifeSim.Core.Tests\HKLifeSim.Core.Tests.csproj", "{ECE97A21-0025-4961-AD69-07107F0EE2C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HKLifeSim.Cli", "src\HKLifeSim.Cli\HKLifeSim.Cli.csproj", "{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,18 @@ Global
 		{ECE97A21-0025-4961-AD69-07107F0EE2C6}.Release|x64.Build.0 = Release|Any CPU
 		{ECE97A21-0025-4961-AD69-07107F0EE2C6}.Release|x86.ActiveCfg = Release|Any CPU
 		{ECE97A21-0025-4961-AD69-07107F0EE2C6}.Release|x86.Build.0 = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|x64.Build.0 = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Debug|x86.Build.0 = Debug|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|x64.ActiveCfg = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|x64.Build.0 = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|x86.ActiveCfg = Release|Any CPU
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,5 +66,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{05327B3E-7A9C-4498-89DF-139B65DCBC5D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{ECE97A21-0025-4961-AD69-07107F0EE2C6} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{712CB084-C7FA-434E-9AA8-C9D50BBA4D63} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

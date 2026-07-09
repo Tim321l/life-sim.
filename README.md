@@ -18,12 +18,14 @@ dotnet build -warnaserror
 dotnet test
 ```
 
-## Run (available once Phase 2 lands the CLI)
+## Run
 
 ```bash
 dotnet run --project src/HKLifeSim.Cli -- --era 2024plus --seed 42 --auto
 dotnet run --project src/HKLifeSim.Cli -- --validate-content
 ```
+
+Omit `--auto` to play interactively (numbered choices read from stdin).
 
 ## Solution layout
 
@@ -51,7 +53,7 @@ tests/
 |---|---|---|
 | 0 | Repository, CI & quality gates | ✅ Done |
 | 1 | Core domain + persistence | ✅ Done |
-| 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ⬜ Not started |
+| 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ✅ Done |
 | 3 | Multi-era pools + inflation scaling | ⬜ Not started |
 | 4 | Legacy system (multi-generation) | ⬜ Not started |
 | 5 | Avalonia desktop UI | ⬜ Not started |

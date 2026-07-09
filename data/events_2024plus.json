@@ -1,0 +1,767 @@
+{
+  "schemaVersion": 1,
+  "eraId": "2024plus",
+  "events": [
+    {
+      "id": "dse_results_2024plus",
+      "minAge": 18,
+      "maxAge": 18,
+      "weight": 100,
+      "isUnique": true,
+      "category": "education",
+      "title": "DSE 放榜",
+      "body": "今日係DSE放榜日，你嘅心跳聲比手機鬧鐘仲大聲。等咗成年嘅成績，終於要揭曉。",
+      "conditions": [
+        { "op": "notHasFlag", "value": "dropped_out" }
+      ],
+      "choices": [
+        {
+          "id": "enter_university",
+          "text": "入讀本地大學",
+          "effects": { "money": -5000, "stress": 7, "education": 20 },
+          "flagsToSet": ["university_student"],
+          "followUpEventId": "university_orientation_2024plus"
+        },
+        {
+          "id": "go_overseas",
+          "text": "考慮出國留學",
+          "effects": { "money": -15000, "stress": 11, "education": 15 },
+          "flagsToSet": ["overseas_student"]
+        },
+        {
+          "id": "retake_dse",
+          "text": "重讀一年再戰",
+          "effects": { "money": -3000, "stress": 14, "education": 5 }
+        },
+        {
+          "id": "start_working",
+          "text": "直接出嚟做嘢",
+          "effects": { "money": 2000, "stress": 5, "education": -5 },
+          "flagsToSet": ["early_worker"]
+        }
+      ]
+    },
+    {
+      "id": "ielts_overseas_study_2024plus",
+      "minAge": 18,
+      "maxAge": 20,
+      "weight": 40,
+      "isUnique": true,
+      "category": "education",
+      "title": "IELTS 考試",
+      "body": "朋友仔都話而家興去外國讀書，你都心思思想考個IELTS試下水。",
+      "choices": [
+        {
+          "id": "take_ielts",
+          "text": "報考IELTS",
+          "effects": { "money": -2000, "stress": 8, "education": 10 }
+        },
+        {
+          "id": "skip_it",
+          "text": "唔理啦，慢慢諗先",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "jupas_admission_2024plus",
+      "minAge": 18,
+      "maxAge": 18,
+      "weight": 60,
+      "isUnique": true,
+      "category": "education",
+      "title": "JUPAS 選科",
+      "body": "JUPAS放榜前，你要諗清楚志願排位，一鋪㩒掂咗就冇得返轉頭。",
+      "conditions": [
+        { "op": "hasFlag", "value": "university_student" }
+      ],
+      "choices": [
+        {
+          "id": "choose_popular",
+          "text": "揀熱門科（商科／醫科）",
+          "effects": { "stress": 8, "reputation": 5, "education": 8 }
+        },
+        {
+          "id": "choose_passion",
+          "text": "跟興趣揀科",
+          "effects": { "stress": 5, "familyBond": -3, "education": 10 }
+        }
+      ]
+    },
+    {
+      "id": "university_orientation_2024plus",
+      "minAge": 18,
+      "maxAge": 19,
+      "weight": 50,
+      "isUnique": true,
+      "category": "education",
+      "title": "大學迎新營",
+      "body": "迎新營嘅口號、通宵傾偈、O Camp活動——大學生活正式開始。",
+      "conditions": [
+        { "op": "hasFlag", "value": "university_student" }
+      ],
+      "choices": [
+        {
+          "id": "join_activities",
+          "text": "積極參與莊務",
+          "effects": { "stress": 5, "reputation": 8, "familyBond": -2 }
+        },
+        {
+          "id": "focus_study",
+          "text": "專心讀書",
+          "effects": { "stress": 3, "education": 10 }
+        }
+      ]
+    },
+    {
+      "id": "graduation_2024plus",
+      "minAge": 21,
+      "maxAge": 23,
+      "weight": 60,
+      "isUnique": true,
+      "category": "education",
+      "title": "畢業禮",
+      "body": "著上畢業袍嗰刻，先發現三四年時間原來過得咁快。",
+      "conditions": [
+        { "op": "hasFlag", "value": "university_student" }
+      ],
+      "choices": [
+        {
+          "id": "celebrate_big",
+          "text": "同屋企人大肆慶祝",
+          "effects": { "money": -3000, "familyBond": 10, "stress": -5 }
+        },
+        {
+          "id": "keep_low_key",
+          "text": "簡簡單單影張相就算",
+          "effects": { "money": -300, "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "first_job_offer_2024plus",
+      "minAge": 21,
+      "maxAge": 24,
+      "weight": 100,
+      "isUnique": true,
+      "category": "career",
+      "title": "第一份工",
+      "body": "收到人生第一份full time offer，人工唔算高，但總算踏出社會第一步。",
+      "choices": [
+        {
+          "id": "accept_offer",
+          "text": "接受呢份工",
+          "effects": { "money": 3000, "stress": 5, "reputation": 3 },
+          "flagsToSet": ["employed"]
+        },
+        {
+          "id": "keep_searching",
+          "text": "繼續搵過",
+          "effects": { "money": -500, "stress": 10 }
+        }
+      ]
+    },
+    {
+      "id": "job_hopping_2024plus",
+      "minAge": 24,
+      "maxAge": 45,
+      "weight": 50,
+      "category": "career",
+      "title": "跳槽定留低",
+      "body": "獵頭又嚟搵你，話有間公司出高兩成人工，你開始諗緊要唔要轉工。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "jump_ship",
+          "text": "跳槽",
+          "effects": { "money": 5000, "stress": 7, "familyBond": -2 }
+        },
+        {
+          "id": "stay_loyal",
+          "text": "留低搏升職",
+          "effects": { "stress": 2, "reputation": 3 }
+        }
+      ]
+    },
+    {
+      "id": "layoff_2024plus",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "裁員潮",
+      "body": "公司話要「精簡架構」，HR約你今日下午三點傾偈。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "negotiate_package",
+          "text": "同公司傾遣散費",
+          "effects": { "money": 8000, "stress": 10 }
+        },
+        {
+          "id": "fight_for_stay",
+          "text": "力爭留低",
+          "effects": { "stress": 14, "reputation": -3 }
+        }
+      ]
+    },
+    {
+      "id": "promotion_2024plus",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 45,
+      "category": "career",
+      "title": "升職機會",
+      "body": "上司話部門有個Manager位，問你有冇興趣申請。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "go_for_it",
+          "text": "爭取呢個機會",
+          "effects": { "money": 4000, "stress": 10, "reputation": 10 }
+        },
+        {
+          "id": "stay_comfortable",
+          "text": "留喺舒適區",
+          "effects": { "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "slash_career_2024plus",
+      "minAge": 25,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "career",
+      "title": "斜槓人生",
+      "body": "日頭返工，夜晚接freelance，你開始過住「斜槓族」嘅生活。",
+      "choices": [
+        {
+          "id": "go_slash",
+          "text": "全力發展副業",
+          "effects": { "money": 2500, "stress": 8, "education": 3 },
+          "flagsToSet": ["slash_worker"]
+        },
+        {
+          "id": "focus_main_job",
+          "text": "專注返正職",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "open_online_shop_2024plus",
+      "minAge": 22,
+      "maxAge": 55,
+      "weight": 25,
+      "category": "career",
+      "title": "開網店",
+      "body": "IG都幾多人follow，你諗住整埋自己個網店賣手作仔。",
+      "choices": [
+        {
+          "id": "invest_shop",
+          "text": "落本開網店",
+          "effects": { "money": -8000, "stress": 7, "reputation": 5 }
+        },
+        {
+          "id": "keep_it_hobby",
+          "text": "當興趣就算",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "retirement_2024plus",
+      "minAge": 60,
+      "maxAge": 65,
+      "weight": 60,
+      "isUnique": true,
+      "category": "career",
+      "title": "退休",
+      "body": "供完MPF供完樓，你終於捱到退休嗰日，可以慢慢享受人生下半場。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "retire_now",
+          "text": "即刻退休",
+          "effects": { "stress": -15, "familyBond": 5 },
+          "flagsToSet": ["retired"]
+        },
+        {
+          "id": "work_part_time",
+          "text": "做兼職慢慢淡出",
+          "effects": { "money": 2000, "stress": -8 },
+          "flagsToSet": ["retired"]
+        }
+      ]
+    },
+    {
+      "id": "public_housing_lottery_2024plus",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 15,
+      "isUnique": true,
+      "category": "housing",
+      "title": "抽居屋",
+      "body": "居屋公開發售，你都去馬抽番炒，萬一中咗就唔使捱貴租。",
+      "choices": [
+        {
+          "id": "apply_hos",
+          "text": "報名抽居屋",
+          "effects": { "money": -500, "stress": 6 }
+        },
+        {
+          "id": "skip_hos",
+          "text": "唔抽住先",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "save_for_down_payment_2024plus",
+      "minAge": 25,
+      "maxAge": 45,
+      "weight": 40,
+      "isUnique": true,
+      "category": "housing",
+      "title": "儲首期",
+      "body": "你下定決心，由今日開始死慳死抵，為咗上車嗰筆首期進發。",
+      "choices": [
+        {
+          "id": "save_hard",
+          "text": "死慳死抵儲錢",
+          "effects": { "money": -2000, "stress": 6 },
+          "flagsToSet": ["saving_down_payment"],
+          "followUpEventId": "view_flat_2024plus"
+        },
+        {
+          "id": "give_up_saving",
+          "text": "算把啦，使咗先算",
+          "effects": { "money": 1000, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "view_flat_2024plus",
+      "minAge": 25,
+      "maxAge": 48,
+      "weight": 100,
+      "isUnique": true,
+      "category": "housing",
+      "title": "睇樓",
+      "body": "地產經紀帶你睇咗成十幾間盤，終於見到一間睇落順眼嘅單位。",
+      "conditions": [
+        { "op": "hasFlag", "value": "saving_down_payment" }
+      ],
+      "choices": [
+        {
+          "id": "like_the_flat",
+          "text": "鍾意呢間，傾落去",
+          "effects": { "stress": 5 },
+          "followUpEventId": "sign_flat_2024plus"
+        },
+        {
+          "id": "keep_looking",
+          "text": "再睇多幾間先",
+          "effects": { "stress": 5 }
+        }
+      ]
+    },
+    {
+      "id": "sign_flat_2024plus",
+      "minAge": 25,
+      "maxAge": 50,
+      "weight": 100,
+      "isUnique": true,
+      "category": "housing",
+      "title": "簽約上車",
+      "body": "律師樓入面，你手都震震噉簽落個名——呢一刻，你終於都成為業主。",
+      "choices": [
+        {
+          "id": "sign_the_deal",
+          "text": "簽約上車",
+          "effects": { "money": -300000, "stress": 10, "familyBond": 5 },
+          "flagsToSet": ["legacy_owns_flat"]
+        },
+        {
+          "id": "back_out",
+          "text": "臨陣退縮",
+          "effects": { "stress": 10 }
+        }
+      ]
+    },
+    {
+      "id": "subdivided_flat_2024plus",
+      "minAge": 22,
+      "maxAge": 50,
+      "weight": 35,
+      "category": "housing",
+      "title": "劏房生活",
+      "body": "租金年年加，你搬入一間百餘呎嘅劏房，浴室同廚房埋牆共用。",
+      "choices": [
+        {
+          "id": "endure_it",
+          "text": "捱住先，慳返啲租",
+          "effects": { "money": 1500, "stress": 8, "health": -5 }
+        },
+        {
+          "id": "move_out",
+          "text": "搬返出去住大啲",
+          "effects": { "money": -2000, "stress": -5 }
+        }
+      ]
+    },
+    {
+      "id": "emigrate_sell_flat_2024plus",
+      "minAge": 30,
+      "maxAge": 65,
+      "weight": 20,
+      "category": "housing",
+      "title": "移民賣樓",
+      "body": "你決定移民，律師問你嗰層樓係咪都要一併放售。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "sell_before_leaving",
+          "text": "賣咗層樓先走",
+          "effects": { "money": 400000, "stress": 10, "familyBond": -5 }
+        },
+        {
+          "id": "keep_and_rent_out",
+          "text": "租出去，樓留住",
+          "effects": { "money": 5000, "stress": 5 }
+        }
+      ]
+    },
+    {
+      "id": "dating_2024plus",
+      "minAge": 20,
+      "maxAge": 45,
+      "weight": 60,
+      "category": "relationship",
+      "title": "拍拖",
+      "body": "喺朋友聚會識到一個傾得幾投契嘅人，你哋交換咗聯絡方式。",
+      "choices": [
+        {
+          "id": "start_dating",
+          "text": "開始拍拖",
+          "effects": { "stress": -5, "familyBond": 5 },
+          "flagsToSet": ["dating"]
+        },
+        {
+          "id": "stay_single",
+          "text": "享受單身生活",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "marriage_2024plus",
+      "minAge": 24,
+      "maxAge": 50,
+      "weight": 45,
+      "isUnique": true,
+      "category": "relationship",
+      "title": "結婚",
+      "body": "求婚戒指、擺酒請帖、雙方屋企人傾聘禮——你哋決定攜手行落去。",
+      "conditions": [
+        { "op": "hasFlag", "value": "dating" }
+      ],
+      "choices": [
+        {
+          "id": "get_married",
+          "text": "註冊擺酒結婚",
+          "effects": { "money": -100000, "stress": 10, "familyBond": 15 },
+          "flagsToSet": ["married"]
+        },
+        {
+          "id": "stay_partners",
+          "text": "繼續拍拖，未想結婚",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "have_kids_2024plus",
+      "minAge": 26,
+      "maxAge": 48,
+      "weight": 40,
+      "category": "relationship",
+      "title": "生仔",
+      "body": "驗孕棒兩條線，你同伴侶又驚又喜，開始諗點樣迎接呢個小生命。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "have_the_baby",
+          "text": "迎接新生命",
+          "effects": { "money": -50000, "stress": 14, "familyBond": 20 },
+          "flagsToSet": ["has_kids"]
+        },
+        {
+          "id": "not_yet",
+          "text": "遲啲先講",
+          "effects": { "stress": -3 }
+        }
+      ]
+    },
+    {
+      "id": "raising_kids_2024plus",
+      "minAge": 28,
+      "maxAge": 55,
+      "weight": 45,
+      "category": "relationship",
+      "title": "湊仔日常",
+      "body": "補習班、興趣班、功課輔導——湊仔嘅日常令你身心俱疲但又甜蜜。",
+      "conditions": [
+        { "op": "hasFlag", "value": "has_kids" }
+      ],
+      "choices": [
+        {
+          "id": "invest_in_kids",
+          "text": "報多幾個興趣班",
+          "effects": { "money": -8000, "stress": 8, "familyBond": 10 }
+        },
+        {
+          "id": "simple_upbringing",
+          "text": "順其自然咁湊",
+          "effects": { "money": -2000, "stress": 3, "familyBond": 5 }
+        }
+      ]
+    },
+    {
+      "id": "caring_for_parents_2024plus",
+      "minAge": 35,
+      "maxAge": 75,
+      "weight": 40,
+      "category": "relationship",
+      "title": "照顧父母",
+      "body": "父母年紀漸大，身體開始出現毛病，你要喺工作同照顧屋企之間搵平衡。",
+      "choices": [
+        {
+          "id": "hire_helper",
+          "text": "請個工人姐姐幫手",
+          "effects": { "money": -3000, "stress": -5, "familyBond": 8 }
+        },
+        {
+          "id": "care_personally",
+          "text": "親力親為照顧",
+          "effects": { "stress": 10, "familyBond": 15, "health": -5 }
+        }
+      ]
+    },
+    {
+      "id": "health_checkup_2024plus",
+      "minAge": 30,
+      "maxAge": 75,
+      "weight": 50,
+      "category": "health",
+      "title": "身體檢查",
+      "body": "公司年度體檢報告出咗，醫生話你有啲數值要留意。",
+      "choices": [
+        {
+          "id": "follow_advice",
+          "text": "聽醫生話，改善生活習慣",
+          "effects": { "money": -1000, "health": 10, "stress": -3 }
+        },
+        {
+          "id": "ignore_it",
+          "text": "睇少幾眼，照舊生活",
+          "effects": { "health": -8 }
+        }
+      ]
+    },
+    {
+      "id": "overwork_warning_2024plus",
+      "minAge": 25,
+      "maxAge": 60,
+      "weight": 55,
+      "category": "health",
+      "title": "過勞警號",
+      "body": "成個月OT到夜晚十一點，你開始覺得成身唔妥，朋友都勸你唞下。",
+      "conditions": [
+        { "statName": "Stress", "op": ">=", "value": "70" }
+      ],
+      "choices": [
+        {
+          "id": "take_a_break",
+          "text": "請假休息",
+          "effects": { "money": -1500, "stress": -20, "health": 8 }
+        },
+        {
+          "id": "push_through",
+          "text": "頂硬上",
+          "effects": { "health": -15, "stress": 3 }
+        }
+      ]
+    },
+    {
+      "id": "major_illness_2024plus",
+      "minAge": 35,
+      "maxAge": 85,
+      "weight": 15,
+      "category": "health",
+      "title": "大病一場",
+      "body": "一場突如其來嘅大病，令你同屋企人都措手不及。",
+      "choices": [
+        {
+          "id": "full_treatment",
+          "text": "積極治療",
+          "effects": { "money": -60000, "health": 20, "stress": 10 }
+        },
+        {
+          "id": "public_healthcare",
+          "text": "排公立醫院慢慢醫",
+          "effects": { "money": -5000, "health": 5, "stress": 14 }
+        }
+      ]
+    },
+    {
+      "id": "elderly_illness_2024plus",
+      "minAge": 65,
+      "maxAge": 99,
+      "weight": 45,
+      "category": "health",
+      "title": "老年病痛",
+      "body": "年紀大機器壞，關節痛、血壓高開始成為你日常嘅一部分。",
+      "choices": [
+        {
+          "id": "regular_treatment",
+          "text": "定期覆診食藥",
+          "effects": { "money": -2000, "health": 8, "stress": -1 }
+        },
+        {
+          "id": "tough_it_out",
+          "text": "硬撐住唔理",
+          "effects": { "health": -12 }
+        }
+      ]
+    },
+    {
+      "id": "typhoon_work_2024plus",
+      "minAge": 18,
+      "maxAge": 65,
+      "weight": 40,
+      "category": "hk_flavor",
+      "title": "颱風打風返工",
+      "body": "十號風球都未除，老闆個WhatsApp已經彈出嚟問你幾時返到公司。",
+      "conditions": [
+        { "op": "hasFlag", "value": "employed" }
+      ],
+      "choices": [
+        {
+          "id": "brave_the_storm",
+          "text": "頂住風雨返工",
+          "effects": { "money": 1000, "health": -8, "reputation": 5 }
+        },
+        {
+          "id": "stay_home",
+          "text": "留喺屋企，唔理咁多",
+          "effects": { "stress": -5, "reputation": -3 }
+        }
+      ]
+    },
+    {
+      "id": "queue_for_new_flats_2024plus",
+      "minAge": 25,
+      "maxAge": 55,
+      "weight": 20,
+      "category": "hk_flavor",
+      "title": "排隊買樓花",
+      "body": "新盤開售，你半夜就去排隊，希望可以揀到心水單位。",
+      "choices": [
+        {
+          "id": "queue_all_night",
+          "text": "通宵排隊",
+          "effects": { "money": -500, "stress": 6, "health": -3 }
+        },
+        {
+          "id": "give_up_queueing",
+          "text": "算啦，咁多人爭",
+          "effects": { "stress": 2 }
+        }
+      ]
+    },
+    {
+      "id": "emigrate_or_stay_2024plus",
+      "minAge": 25,
+      "maxAge": 60,
+      "weight": 20,
+      "category": "hk_flavor",
+      "title": "移民定留低",
+      "body": "身邊朋友一個個移民，你都要諗清楚，係去係留。",
+      "choices": [
+        {
+          "id": "emigrate",
+          "text": "決定移民",
+          "effects": { "money": -40000, "stress": 13, "familyBond": -10 },
+          "flagsToSet": ["legacy_emigrated"]
+        },
+        {
+          "id": "stay_in_hk",
+          "text": "留喺香港",
+          "effects": { "stress": 5, "familyBond": 5 }
+        }
+      ]
+    },
+    {
+      "id": "mark_six_2024plus",
+      "minAge": 18,
+      "maxAge": 90,
+      "weight": 30,
+      "category": "hk_flavor",
+      "title": "六合彩",
+      "body": "今晚六合彩頭獎過億，你都買咗幾注，幻想住中獎嘅畫面。",
+      "choices": [
+        {
+          "id": "buy_a_few",
+          "text": "買幾注碰運氣",
+          "effects": { "money": -200, "stress": -3 }
+        },
+        {
+          "id": "not_interested",
+          "text": "冇興趣，唔買",
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "id": "generic_daily_life_2024plus",
+      "minAge": 0,
+      "maxAge": 120,
+      "weight": 1,
+      "isUnique": false,
+      "category": "fallback",
+      "title": "尋常一日",
+      "body": "又係平平無奇嘅一日，返工放工，食飯瞓覺，日子照舊噉過。",
+      "choices": [
+        {
+          "id": "relax_at_home",
+          "text": "留喺屋企休息",
+          "effects": { "stress": -3, "health": 2 }
+        },
+        {
+          "id": "hang_out_with_friends",
+          "text": "同朋友出去蒲",
+          "effects": { "money": -300, "stress": -5, "familyBond": 2 }
+        },
+        {
+          "id": "work_overtime",
+          "text": "留喺公司加班",
+          "effects": { "money": 500, "stress": 5 }
+        }
+      ]
+    }
+  ]
+}

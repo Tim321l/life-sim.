@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "eras": [
+    {
+      "eraId": "2024plus",
+      "startYear": 2024,
+      "endYear": 2045,
+      "inflationMultiplier": 1.0,
+      "averageHousePrice": 8000000,
+      "startingMoney": 20000,
+      "availableCareerTracks": ["tech", "finance", "civil_service", "gig", "creative"],
+      "eventPoolFiles": ["events_2024plus.json"]
+    }
+  ]
+}

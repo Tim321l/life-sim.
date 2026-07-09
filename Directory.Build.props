@@ -7,7 +7,13 @@
     <AnalysisLevel>latest-all</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- CS1591: missing XML doc comments — we don't require doc comments on every public member.
+         CA5394: "Random is insecure" — this project deliberately uses System.Random (never
+         Random.Shared, never ad-hoc `new Random()`) for reproducible, seeded gameplay; a
+         cryptographic RNG cannot be seeded and would break "same seed ⇒ identical playthrough".
+         CA1303: "pass a literal string as a localized parameter" — all game-facing text is
+         hardcoded Traditional Chinese (HK) per spec, with no resx/localization layer. -->
+    <NoWarn>$(NoWarn);CS1591;CA5394;CA1303</NoWarn>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <Deterministic>true</Deterministic>
     <LangVersion>latest</LangVersion>
