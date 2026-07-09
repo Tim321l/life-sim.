@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HKLifeSim.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+             x:Class="HKLifeSim.Desktop.Views.ObituaryView"
+             x:DataType="vm:ObituaryViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="32" Spacing="16" MaxWidth="640" HorizontalAlignment="Center">
+
+            <TextBlock Text="訃聞" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding Age, StringFormat='享年 {0} 歲'}" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding TranslatedDeathCause}" FontSize="22" FontWeight="Bold" Foreground="#C62828" HorizontalAlignment="Center" Margin="0,0,0,16" />
+
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="最終數值" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Stats.Money, StringFormat='金錢 Money: {0:N0}'}" />
+                    <TextBlock Text="{Binding Stats.Health, StringFormat='健康 Health: {0}'}" />
+                    <TextBlock Text="{Binding Stats.Stress, StringFormat='壓力 Stress: {0}'}" />
+                    <TextBlock Text="{Binding Stats.FamilyBond, StringFormat='親情 FamilyBond: {0}'}" />
+                    <TextBlock Text="{Binding Stats.Education, StringFormat='學歷 Education: {0}'}" />
+                    <TextBlock Text="{Binding Stats.Reputation, StringFormat='聲望 Reputation: {0}'}" />
+                    <TextBlock Text="{Binding EventsExperienced, StringFormat='經歷事件數目: {0}'}" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="人生成就 Flags" FontWeight="Bold" Margin="0,8,0,0" />
+            <ItemsControl ItemsSource="{Binding FlagChips}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Border Background="#2E7D32" CornerRadius="12" Padding="10,4" Margin="4">
+                            <TextBlock Text="{Binding}" Foreground="White" FontSize="12" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Margin="0,24,0,0">
+                <Button Content="開展下一代" Command="{Binding StartNextGenerationCommand}" Padding="20,10" Classes="choice" />
+                <Button Content="重新開始" Command="{Binding RestartCommand}" Padding="20,10" Classes="choice" />
+                <Button Content="離開" Command="{Binding ExitCommand}" Padding="20,10" Classes="choice" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HKLifeSim.Desktop.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+             x:Class="HKLifeSim.Desktop.Views.GameView"
+             x:DataType="vm:GameViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+        <!-- Stat bar -->
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding MoneyDisplay}" FontSize="24" FontWeight="Bold" />
+
+                <Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="Auto,Auto">
+                    <StackPanel Grid.Column="0" Grid.Row="0" Spacing="2" Margin="4">
+                        <TextBlock Text="健康 Health" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="{Binding HealthValue}" FontWeight="Bold" />
+                        <ProgressBar Value="{Binding HealthValue}" Maximum="100" Height="6" Foreground="{Binding HealthColor}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="0" Spacing="2" Margin="4">
+                        <TextBlock Text="壓力 Stress" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="{Binding StressValue}" FontWeight="Bold" />
+                        <ProgressBar Value="{Binding StressValue}" Maximum="100" Height="6" Foreground="{Binding StressColor}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Grid.Row="0" Spacing="2" Margin="4">
+                        <TextBlock Text="親情 FamilyBond" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="{Binding FamilyBondValue}" FontWeight="Bold" />
+                        <ProgressBar Value="{Binding FamilyBondValue}" Maximum="100" Height="6" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Grid.Row="0" Spacing="2" Margin="4">
+                        <TextBlock Text="學歷 Education" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="{Binding EducationValue}" FontWeight="Bold" />
+                        <ProgressBar Value="{Binding EducationValue}" Maximum="100" Height="6" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Grid.Row="0" Spacing="2" Margin="4">
+                        <TextBlock Text="聲望 Reputation" FontSize="11" Opacity="0.7" />
+                        <TextBlock Text="{Binding ReputationValue}" FontWeight="Bold" />
+                        <ProgressBar Value="{Binding ReputationValue}" Maximum="100" Height="6" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Event content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12" MaxWidth="760" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding Year, StringFormat='{}{0} 年'}" FontSize="13" Opacity="0.7" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Age, StringFormat='現年 {0} 歲'}" FontSize="13" Opacity="0.7" HorizontalAlignment="Center" Margin="0,0,0,8" />
+
+                <TextBlock Text="{Binding StatDeltaToast}"
+                           IsVisible="{Binding StatDeltaToast, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                           HorizontalAlignment="Center"
+                           FontSize="13"
+                           Foreground="#2E7D32"
+                           Margin="0,0,0,8" />
+
+                <TextBlock Text="{Binding EventTitle}" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding EventBody}" FontSize="16" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Choices -->
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Choices}" IsEnabled="{Binding !IsBusy}" MaxWidth="760" HorizontalAlignment="Center">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChoiceOption">
+                    <Button Classes="choice"
+                            Content="{Binding Text}"
+                            Command="{Binding $parent[ItemsControl].((vm:GameViewModel)DataContext).SelectChoiceCommand}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+    </Grid>
+
+</UserControl>

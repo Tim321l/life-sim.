@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HKLifeSim.Desktop.ViewModels"
+        xmlns:conv="using:Avalonia.Data.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+        x:Class="HKLifeSim.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="香港人生模擬器 HK Life Sim"
+        MinWidth="900" MinHeight="600"
+        Width="1100" Height="720">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <ContentControl Content="{Binding CurrentViewModel}"
+                        IsVisible="{Binding CurrentViewModel, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <TextBlock Text="{Binding LoadErrorMessage}"
+                   IsVisible="{Binding LoadErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                   Foreground="Red"
+                   TextWrapping="Wrap"
+                   Margin="24"
+                   FontSize="16" />
+    </Grid>
+
+</Window>

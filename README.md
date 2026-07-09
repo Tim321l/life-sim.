@@ -33,6 +33,15 @@ Add `--generations N` (auto mode) to play a multi-generation family lineage in t
 era, printing an inheritance summary after each life. In interactive mode, you're
 prompted "開展下一代?" after each death instead.
 
+## Desktop app
+
+```bash
+dotnet run --project src/HKLifeSim.Desktop
+```
+
+Saves to `%APPDATA%/HKLifeSim/autosave.json` (Windows) after every choice; relaunching
+and choosing 繼續上次 on the Setup screen resumes the exact saved state.
+
 ## Solution layout
 
 ```
@@ -62,7 +71,7 @@ tests/
 | 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ✅ Done |
 | 3 | Multi-era pools + inflation scaling | ✅ Done |
 | 4 | Legacy system (multi-generation) | ✅ Done |
-| 5 | Avalonia desktop UI | ⬜ Not started |
+| 5 | Avalonia desktop UI | ✅ Done |
 | 6 | Blazor WASM web UI | ⬜ Not started |
 
 ## Quality gates

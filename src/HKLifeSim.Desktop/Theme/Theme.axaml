@@ -1,0 +1,46 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <FontFamily x:Key="AppFontFamily">avares://HKLifeSim.Desktop/Assets#Inter, Microsoft JhengHei UI, Noto Sans HK, Segoe UI, sans-serif</FontFamily>
+    <SolidColorBrush x:Key="AccentBrush" Color="#2E7D32" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1E1E1E" Opacity="0.04" />
+  </Styles.Resources>
+
+  <Style Selector="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+  </Style>
+
+  <Style Selector="Button">
+    <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+  </Style>
+
+  <Style Selector="Button.choice">
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="Margin" Value="0,4" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+
+  <Style Selector="Border.card">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
+  </Style>
+
+  <Style Selector="Border.eraCard">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+
+  <Style Selector="Border.eraCard:pointerover">
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+  </Style>
+
+</Styles>
