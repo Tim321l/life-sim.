@@ -562,6 +562,56 @@
       ]
     },
     {
+      "id": "inherited_ancestral_flat_2000s",
+      "minAge": 18,
+      "maxAge": 30,
+      "weight": 60,
+      "isUnique": true,
+      "category": "housing",
+      "title": "繼承祖屋",
+      "body": "你一出世，屋企已經留低一層祖屋畀你，你要諗清楚點處理呢份家業。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_owns_flat" }
+      ],
+      "choices": [
+        {
+          "id": "sell_it",
+          "text": "賣咗套現",
+          "effects": { "money": 150000, "stress": -5, "familyBond": -5 }
+        },
+        {
+          "id": "keep_it",
+          "text": "留住做傳家之物",
+          "effects": { "stress": 5, "familyBond": 10 }
+        }
+      ]
+    },
+    {
+      "id": "family_network_abroad_2000s",
+      "minAge": 18,
+      "maxAge": 40,
+      "weight": 40,
+      "category": "hk_flavor",
+      "title": "移民關係網",
+      "body": "屋企上一代已經移咗民，喺外國落地生根，佢哋話隨時歡迎你過去投靠。",
+      "conditions": [
+        { "op": "hasFlag", "value": "legacy_emigrated" }
+      ],
+      "choices": [
+        {
+          "id": "join_them",
+          "text": "決定過去投靠佢哋",
+          "effects": { "money": -20000, "stress": 15, "familyBond": 10 },
+          "flagsToSet": ["legacy_emigrated"]
+        },
+        {
+          "id": "stay_and_build_here",
+          "text": "留喺呢度自己打拼",
+          "effects": { "stress": 5, "familyBond": -5 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_2000s",
       "minAge": 0,
       "maxAge": 120,

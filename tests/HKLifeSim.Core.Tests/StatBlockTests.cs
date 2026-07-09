@@ -119,6 +119,7 @@ public sealed class StatBlockTests
     {
         var legacy = new LegacyRecord(
             SourcePlayerId: "parent-1",
+            SourceEraId: "2024plus",
             InheritedMoney: 5_000,
             InheritedFlags: [],
             FamilyReputationCarryOver: 0);
@@ -126,6 +127,36 @@ public sealed class StatBlockTests
         var stats = StatBlock.CreateStarting(TestEra, legacy);
 
         stats.Money.Should().Be(25_000);
+    }
+
+    [Fact]
+    public void CreateStarting_Adds_Reputation_Carry_Over_From_Legacy()
+    {
+        var legacy = new LegacyRecord(
+            SourcePlayerId: "parent-1",
+            SourceEraId: "2024plus",
+            InheritedMoney: 0,
+            InheritedFlags: [],
+            FamilyReputationCarryOver: 15);
+
+        var stats = StatBlock.CreateStarting(TestEra, legacy);
+
+        stats.Reputation.Should().Be(25);
+    }
+
+    [Fact]
+    public void CreateStarting_Clamps_Reputation_Carry_Over_At_The_Upper_Bound()
+    {
+        var legacy = new LegacyRecord(
+            SourcePlayerId: "parent-1",
+            SourceEraId: "2024plus",
+            InheritedMoney: 0,
+            InheritedFlags: [],
+            FamilyReputationCarryOver: 1000);
+
+        var stats = StatBlock.CreateStarting(TestEra, legacy);
+
+        stats.Reputation.Should().Be(100);
     }
 
     private static StatDelta DeltaFor(string statName, int value) => statName switch

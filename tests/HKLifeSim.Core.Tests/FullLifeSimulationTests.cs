@@ -54,7 +54,7 @@ public sealed class FullLifeSimulationTests : IDisposable
             }
         }
 
-        await manager.SaveAsync(state, "mid-life", TestContext.Current.CancellationToken);
+        await manager.SaveAsync(state, "mid-life", cancellationToken: TestContext.Current.CancellationToken);
         var loaded = await manager.LoadAsync("mid-life", TestContext.Current.CancellationToken);
 
         loaded.Should().NotBeNull();
@@ -72,7 +72,7 @@ public sealed class FullLifeSimulationTests : IDisposable
 
         var state = PlayFullLife(seed: 555, out _);
 
-        await manager.SaveAsync(state, "end-of-life", TestContext.Current.CancellationToken);
+        await manager.SaveAsync(state, "end-of-life", cancellationToken: TestContext.Current.CancellationToken);
         var loaded = await manager.LoadAsync("end-of-life", TestContext.Current.CancellationToken);
 
         loaded.Should().NotBeNull();

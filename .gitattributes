@@ -1,0 +1,4 @@
+# Force LF line endings in the working tree regardless of core.autocrlf, matching
+# .editorconfig's end_of_line = lf. Verify's snapshot comparer rejects CRLF outright,
+# and autocrlf=true on Windows silently corrupts committed *.verified.txt files.
+* text=auto eol=lf

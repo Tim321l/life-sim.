@@ -23,6 +23,8 @@ internal sealed class CliOptions
 
     public bool ValidateContent { get; init; }
 
+    public required int Generations { get; init; }
+
     public static CliOptions Parse(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -31,6 +33,7 @@ internal sealed class CliOptions
         var seed = Environment.TickCount;
         var auto = false;
         var validateContent = false;
+        var generations = 1;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -48,6 +51,9 @@ internal sealed class CliOptions
                 case "--validate-content":
                     validateContent = true;
                     break;
+                case "--generations":
+                    generations = int.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
+                    break;
             }
         }
 
@@ -57,6 +63,7 @@ internal sealed class CliOptions
             Seed = seed,
             Auto = auto,
             ValidateContent = validateContent,
+            Generations = generations,
         };
     }
 }
@@ -90,39 +97,58 @@ internal static class Runner
         }
 
         var events = LoadEvents(dataDirectory, era);
-        var engine = new EventEngine(events, era, options.Seed);
-        var lifecycle = new LifecycleSystem(options.Seed);
+        var chain = new GenerationChain(eras);
 
-        var state = new GameState
+        var generationNumber = 0;
+        while (true)
         {
-            PlayerId = Guid.NewGuid().ToString("N"),
-            EraId = era.EraId,
-            Age = 18,
-            CurrentYear = era.StartYear,
-            Stats = StatBlock.CreateStarting(era, legacy: null),
-            RngSeed = options.Seed,
-        };
+            generationNumber++;
+            var seed = options.Seed + generationNumber - 1;
+            var engine = new EventEngine(events, era, seed);
+            var lifecycle = new LifecycleSystem(seed);
+            var state = chain.StartNextGeneration(era, seed);
 
-        while (state.IsAlive)
-        {
-            var evt = engine.SelectNextEvent(state);
-            PrintTurn(state, evt);
+            Console.WriteLine();
+            Console.WriteLine($"=== 第 {generationNumber} 代 Generation {generationNumber} ===");
 
-            var choiceId = options.Auto
-                ? engine.PickRandomChoiceId(evt)
-                : ReadChoiceFromConsole(evt);
+            while (state.IsAlive)
+            {
+                var evt = engine.SelectNextEvent(state);
+                PrintTurn(state, evt);
 
-            engine.ApplyChoice(state, evt, choiceId);
+                var choiceId = options.Auto
+                    ? engine.PickRandomChoiceId(evt)
+                    : ReadChoiceFromConsole(evt);
 
-            if (!state.IsAlive)
+                engine.ApplyChoice(state, evt, choiceId);
+
+                if (!state.IsAlive)
+                {
+                    break;
+                }
+
+                lifecycle.AdvanceYear(state, era);
+            }
+
+            PrintObituary(state);
+
+            var legacy = LegacySystem.GenerateLegacy(state);
+            chain.Lineage.Add(legacy);
+            PrintInheritanceSummary(legacy);
+
+            if (options.Auto)
+            {
+                if (generationNumber >= options.Generations)
+                {
+                    break;
+                }
+            }
+            else if (!PromptForNextGeneration())
             {
                 break;
             }
-
-            lifecycle.AdvanceYear(state, era);
         }
 
-        PrintObituary(state);
         return 0;
     }
 
@@ -165,6 +191,13 @@ internal static class Runner
         }
     }
 
+    private static bool PromptForNextGeneration()
+    {
+        Console.Write("開展下一代? (y/n) > ");
+        var input = Console.ReadLine();
+        return string.Equals(input?.Trim(), "y", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static void PrintObituary(GameState state)
     {
         Console.WriteLine();
@@ -174,5 +207,14 @@ internal static class Runner
         Console.WriteLine($"Money={state.Stats.Money} Health={state.Stats.Health} Stress={state.Stats.Stress} FamilyBond={state.Stats.FamilyBond} Education={state.Stats.Education} Reputation={state.Stats.Reputation}");
         Console.WriteLine($"Flags: {string.Join(", ", state.FlagsSet)}");
         Console.WriteLine($"Events experienced: {state.EventHistory.Count}");
+    }
+
+    private static void PrintInheritanceSummary(LegacyRecord legacy)
+    {
+        Console.WriteLine();
+        Console.WriteLine("=== 家族傳承 Inheritance ===");
+        Console.WriteLine($"遺產 (Inherited money, {legacy.SourceEraId} scale): {legacy.InheritedMoney}");
+        Console.WriteLine($"聲望承傳 (Reputation carry-over): {legacy.FamilyReputationCarryOver}");
+        Console.WriteLine($"傳承旗標 (Legacy flags): {string.Join(", ", legacy.InheritedFlags)}");
     }
 }

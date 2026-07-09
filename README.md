@@ -29,6 +29,10 @@ dotnet run --project src/HKLifeSim.Cli -- --validate-content
 interactively (numbered choices read from stdin). Event money effects are authored at
 2024plus baseline and automatically scaled per era via `InflationScaler`.
 
+Add `--generations N` (auto mode) to play a multi-generation family lineage in the same
+era, printing an inheritance summary after each life. In interactive mode, you're
+prompted "開展下一代?" after each death instead.
+
 ## Solution layout
 
 ```
@@ -57,7 +61,7 @@ tests/
 | 1 | Core domain + persistence | ✅ Done |
 | 2 | Event engine + JSON schema + 2024plus pool + CLI runner | ✅ Done |
 | 3 | Multi-era pools + inflation scaling | ✅ Done |
-| 4 | Legacy system (multi-generation) | ⬜ Not started |
+| 4 | Legacy system (multi-generation) | ✅ Done |
 | 5 | Avalonia desktop UI | ⬜ Not started |
 | 6 | Blazor WASM web UI | ⬜ Not started |
 

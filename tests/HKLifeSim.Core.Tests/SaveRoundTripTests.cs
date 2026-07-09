@@ -37,6 +37,7 @@ public sealed class SaveRoundTripTests : IDisposable
             Profile = new CharacterProfile("陳大文", Gender.Male, BirthYear: 2024),
             InheritedLegacy = new LegacyRecord(
                 SourcePlayerId: "player-0",
+                SourceEraId: "2000s",
                 InheritedMoney: 3_000,
                 InheritedFlags: ["legacy_owns_flat", "legacy_emigrated"],
                 FamilyReputationCarryOver: 20),
@@ -46,7 +47,7 @@ public sealed class SaveRoundTripTests : IDisposable
         original.EventHistory.Add("dse_results_2024plus");
         original.EventHistory.Add("first_internship_2024plus");
 
-        await manager.SaveAsync(original, "slot-a", TestContext.Current.CancellationToken);
+        await manager.SaveAsync(original, "slot-a", cancellationToken: TestContext.Current.CancellationToken);
         var loaded = await manager.LoadAsync("slot-a", TestContext.Current.CancellationToken);
 
         loaded.Should().NotBeNull();
@@ -129,5 +130,45 @@ public sealed class SaveRoundTripTests : IDisposable
         var act = async () => await manager.LoadAsync("future-slot");
 
         await act.Should().ThrowAsync<SaveVersionException>();
+    }
+
+    [Fact]
+    public async Task LoadAsync_Reads_A_SchemaVersion_1_Save_As_A_Single_Generation_Chain_With_Empty_Lineage()
+    {
+        var store = new FileSaveStore(_tempDirectory);
+        var manager = new SaveManager(store, TimeProvider.System);
+
+        const string v1Json = """{"schemaVersion":1,"state":{"playerId":"player-1","eraId":"2024plus"}}""";
+        await store.WriteAsync("v1-slot", v1Json, TestContext.Current.CancellationToken);
+
+        var loadedState = await manager.LoadAsync("v1-slot", TestContext.Current.CancellationToken);
+        var loadedLineage = await manager.LoadLineageAsync("v1-slot", TestContext.Current.CancellationToken);
+
+        loadedState.Should().NotBeNull();
+        loadedState!.PlayerId.Should().Be("player-1");
+        loadedLineage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SaveAsync_Then_LoadLineageAsync_Round_Trips_A_SchemaVersion_2_Save_With_Lineage()
+    {
+        var store = new FileSaveStore(_tempDirectory);
+        var manager = new SaveManager(store, TimeProvider.System);
+
+        var state = new GameState { PlayerId = "player-2", EraId = "1980s" };
+        IReadOnlyList<LegacyRecord> lineage =
+        [
+            new LegacyRecord(
+                SourcePlayerId: "player-1",
+                SourceEraId: "1960s",
+                InheritedMoney: 150,
+                InheritedFlags: ["legacy_owns_flat"],
+                FamilyReputationCarryOver: 5),
+        ];
+
+        await manager.SaveAsync(state, "v2-slot", lineage, TestContext.Current.CancellationToken);
+        var loadedLineage = await manager.LoadLineageAsync("v2-slot", TestContext.Current.CancellationToken);
+
+        loadedLineage.Should().BeEquivalentTo(lineage);
     }
 }

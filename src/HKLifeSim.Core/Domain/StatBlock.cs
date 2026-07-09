@@ -32,7 +32,7 @@ public readonly record struct StatBlock(
             Stress: 10,
             FamilyBond: 50,
             Education: 10,
-            Reputation: 10);
+            Reputation: Clamp(10 + (legacy?.FamilyReputationCarryOver ?? 0)));
     }
 
     public StatBlock ApplyDelta(StatDelta delta) =>
