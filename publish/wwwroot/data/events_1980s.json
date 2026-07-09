@@ -604,6 +604,16 @@
           "id": "go_play_outside",
           "text": "走去屋邨球場玩",
           "effects": { "familyBond": -2, "stress": -4 }
+        },
+        {
+          "id": "half_and_half",
+          "text": "幫手一陣先再去玩",
+          "effects": { "familyBond": 3, "stress": -1 }
+        },
+        {
+          "id": "study_instead",
+          "text": "留喺房度溫書",
+          "effects": { "education": 3, "familyBond": -1 }
         }
       ]
     },
@@ -735,6 +745,16 @@
           "id": "spend_on_treats",
           "text": "去街機打波子機",
           "effects": { "money": -100, "stress": -5 }
+        },
+        {
+          "id": "share_with_siblings",
+          "text": "同細佬妹分享",
+          "effects": { "money": -50, "familyBond": 4 }
+        },
+        {
+          "id": "buy_stationery",
+          "text": "買文具溫書",
+          "effects": { "money": -50, "education": 2 }
         }
       ]
     },
@@ -916,6 +936,225 @@
           "id": "old_ways",
           "text": "唔理佢，繼續用返舊方法",
           "effects": { "stress": -3, "education": -2 }
+        }
+      ]
+    },
+    {
+      "id": "spouse_career_news_1980s",
+      "minAge": 20,
+      "maxAge": 65,
+      "weight": 35,
+      "category": "relationship",
+      "title": "伴侶嘅好消息",
+      "body": "你伴侶今日返到嚟，笑逐顏開話公司有咗好消息。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "celebrate",
+          "text": "為佢開心，一齊慶祝",
+          "effects": { "money": 500, "familyBond": 8, "stress": -3 }
+        },
+        {
+          "id": "worried",
+          "text": "擔心佢會唔會做到太攰",
+          "effects": { "familyBond": 4, "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "spouse_conflict_1980s",
+      "minAge": 20,
+      "maxAge": 65,
+      "weight": 30,
+      "category": "relationship",
+      "title": "夫妻嘔氣",
+      "body": "為咗屋企啲小事，你同伴侶意見不合，嘔咗一輪氣。",
+      "conditions": [
+        { "op": "hasFlag", "value": "married" }
+      ],
+      "choices": [
+        {
+          "id": "apologize",
+          "text": "主動道歉和好",
+          "effects": { "familyBond": 10, "stress": -4 }
+        },
+        {
+          "id": "stand_ground",
+          "text": "堅持自己冇錯",
+          "effects": { "familyBond": -10, "stress": 6 }
+        }
+      ]
+    },
+    {
+      "id": "friend_gathering_1980s",
+      "minAge": 16,
+      "maxAge": 79,
+      "weight": 35,
+      "category": "relationship",
+      "title": "朋友聚會",
+      "body": "你嘅朋友夾份搞咗場聚會，叫埋你一齊參加。",
+      "conditions": [
+        { "op": "hasFlag", "value": "has_npc_friend" }
+      ],
+      "choices": [
+        {
+          "id": "join_gathering",
+          "text": "開心赴會，聯誼下感情",
+          "effects": { "money": -300, "familyBond": 8, "stress": -6 }
+        },
+        {
+          "id": "stay_home",
+          "text": "太攰想留喺屋企",
+          "effects": { "stress": -2, "familyBond": -2 }
+        }
+      ]
+    },
+    {
+      "id": "health_warning_1980s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 30,
+      "category": "health",
+      "title": "身體響起警號",
+      "body": "你發現自己成日攰，去睇咗醫生先知要注意健康。",
+      "choices": [
+        {
+          "id": "improve_lifestyle",
+          "text": "即刻改善生活習慣",
+          "effects": { "health": 8, "stress": 3, "money": -500 }
+        },
+        {
+          "id": "ignore_it",
+          "text": "諱疾忌醫，得過且過",
+          "effects": { "health": -8, "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "windfall_1980s",
+      "minAge": 18,
+      "maxAge": 79,
+      "weight": 25,
+      "category": "hk_flavor",
+      "title": "六合彩安慰獎",
+      "body": "你買嘅六合彩中咗個安慰獎，雖然唔多但都幾開心。",
+      "choices": [
+        {
+          "id": "save_it",
+          "text": "全部儲起",
+          "effects": { "money": 2000 }
+        },
+        {
+          "id": "spend_on_treats",
+          "text": "用嚟犒賞下自己",
+          "effects": { "money": 1000, "stress": -6 }
+        }
+      ]
+    },
+    {
+      "id": "viral_moment_1980s",
+      "minAge": 16,
+      "maxAge": 79,
+      "weight": 20,
+      "category": "hk_flavor",
+      "title": "街坊都知你件事",
+      "body": "你做嘅一件小事，成條屋邨嘅街坊都口耳相傳，人人都話識你。",
+      "choices": [
+        {
+          "id": "enjoy_fame",
+          "text": "享受呢陣熱潮",
+          "effects": { "reputation": 6, "stress": -3 }
+        },
+        {
+          "id": "keep_low_profile",
+          "text": "覺得好尷尬想低調",
+          "effects": { "reputation": 2, "stress": 2 }
+        }
+      ]
+    },
+    {
+      "id": "junior_secondary_electives_advanced_1980s",
+      "minAge": 13,
+      "maxAge": 13,
+      "weight": 150,
+      "isUnique": true,
+      "category": "education",
+      "title": "中二選修科目",
+      "body": "你成績唔錯，學校俾你揀多幾科選修，將來揾食都多條路。",
+      "conditions": [
+        { "statName": "Education", "op": ">=", "value": "50" }
+      ],
+      "choices": [
+        {
+          "id": "elective_computer",
+          "text": "電腦科",
+          "effects": { "education": 8, "stress": 3 }
+        },
+        {
+          "id": "elective_home_ec",
+          "text": "家政",
+          "effects": { "familyBond": 6, "health": 3, "education": 2 }
+        },
+        {
+          "id": "elective_technical",
+          "text": "設計與科技",
+          "effects": { "education": 5, "reputation": 3 }
+        },
+        {
+          "id": "elective_music",
+          "text": "音樂",
+          "effects": { "stress": -4 },
+          "flagsToSet": ["skill_music_1"]
+        },
+        {
+          "id": "elective_arts",
+          "text": "美術",
+          "effects": { "reputation": 4, "stress": -3 }
+        },
+        {
+          "id": "elective_pe",
+          "text": "體育",
+          "effects": { "health": 5 },
+          "flagsToSet": ["skill_sports_1"]
+        }
+      ]
+    },
+    {
+      "id": "junior_secondary_electives_basic_1980s",
+      "minAge": 13,
+      "maxAge": 13,
+      "weight": 150,
+      "isUnique": true,
+      "category": "education",
+      "title": "中二選修科目",
+      "body": "學校資源有限，你可以揀嘅選修科唔多，但都要揀一科。",
+      "conditions": [
+        { "statName": "Education", "op": "<", "value": "50" }
+      ],
+      "choices": [
+        {
+          "id": "elective_home_ec",
+          "text": "家政",
+          "effects": { "familyBond": 6, "health": 3, "education": 2 }
+        },
+        {
+          "id": "elective_music",
+          "text": "音樂",
+          "effects": { "stress": -4 },
+          "flagsToSet": ["skill_music_1"]
+        },
+        {
+          "id": "elective_arts",
+          "text": "美術",
+          "effects": { "reputation": 4, "stress": -3 }
+        },
+        {
+          "id": "elective_pe",
+          "text": "體育",
+          "effects": { "health": 5 },
+          "flagsToSet": ["skill_sports_1"]
         }
       ]
     },

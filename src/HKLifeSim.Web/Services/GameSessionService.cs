@@ -442,6 +442,109 @@ internal sealed class GameSessionService
         return $"你報讀咗名師補習班，操練咗好多題目！(花費 ${Math.Abs(cost):N0})";
     }
 
+    // --- Career tracks: turns education/DSE stream investment into an actual salary path ---
+
+    private static readonly Dictionary<string, (string Name, int EduRequirement, int PayMin, int PayMax)> CareerTrackInfo = new(StringComparer.Ordinal)
+    {
+        ["factory"] = ("廠房工人 Factory Worker", 0, 1500, 2500),
+        ["trading"] = ("貿易行 Trading", 30, 2500, 4000),
+        ["fishing"] = ("漁民 Fisherman", 0, 1500, 2500),
+        ["tailor"] = ("裁縫 Tailor", 20, 2000, 3500),
+        ["manufacturing"] = ("製造業 Manufacturing", 20, 2500, 4000),
+        ["finance"] = ("金融業 Finance", 60, 5000, 9000),
+        ["civil_service"] = ("公務員 Civil Service", 50, 4000, 7000),
+        ["retail"] = ("零售業 Retail", 0, 1500, 2500),
+        ["tech"] = ("科技業 Tech", 55, 5000, 9000),
+        ["logistics"] = ("物流業 Logistics", 20, 2500, 4000),
+        ["creative"] = ("創意行業 Creative", 40, 3000, 5500),
+        ["gig"] = ("自由工作者 Freelancer", 0, 2000, 3500),
+    };
+
+    public IReadOnlyList<(string Id, string Name, int EduRequirement, bool Eligible)> GetAvailableCareerTracks()
+    {
+        if (State is null || Era is null) return [];
+
+        return [.. Era.AvailableCareerTracks
+            .Where(CareerTrackInfo.ContainsKey)
+            .Select(id =>
+            {
+                var info = CareerTrackInfo[id];
+                return (Id: id, Name: info.Name, EduRequirement: info.EduRequirement, Eligible: State.Stats.Education >= info.EduRequirement);
+            })];
+    }
+
+    public string? GetChosenCareerTrack()
+    {
+        if (State is null) return null;
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("career_track_", StringComparison.Ordinal));
+        return flag?["career_track_".Length..];
+    }
+
+    public async Task<string> ChooseCareerAsync(string trackId)
+    {
+        ArgumentNullException.ThrowIfNull(trackId);
+        if (State is null || Era is null) return "無效狀態";
+        if (State.Age < 18) return "你未夠18歲，未夠班出嚟做嘢！";
+        if (!CareerTrackInfo.TryGetValue(trackId, out var info)) return "呢一行喺呢個年代未有出現！";
+        if (State.Stats.Education < info.EduRequirement) return $"你嘅學歷未夠（需要學歷 ≥ {info.EduRequirement}），未夠班入行！";
+
+        var current = GetChosenCareerTrack();
+        var before = State.Stats;
+        if (current is not null)
+        {
+            State.FlagsSet.Remove($"career_track_{current}");
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 5));
+        }
+
+        State.SetFlag($"career_track_{trackId}");
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return current is null
+            ? $"🎉 你正式入行做「{info.Name}」，展開你嘅職業生涯！"
+            : $"🔄 你轉咗行，而家做緊「{info.Name}」。轉工總要適應一下。";
+    }
+
+    public int GetCareerLevel()
+    {
+        var track = GetChosenCareerTrack();
+        return track is null ? 0 : GetSkillLevel($"career_{track}");
+    }
+
+    public static string CareerRankLabel(int level) => level switch
+    {
+        >= 20 => "總監/合伙人 Director",
+        >= 10 => "經理 Manager",
+        >= 5 => "高級 Senior",
+        _ => "初級 Junior"
+    };
+
+    public async Task<string> GoToCareerJobAsync()
+    {
+        if (State is null) return "無效狀態";
+        var trackId = GetChosenCareerTrack();
+        if (trackId is null || !CareerTrackInfo.TryGetValue(trackId, out var info)) return "你未選擇職業！";
+        if (State.HasFlag("action_career_work")) return "今年已經返過工啦！";
+
+        var before = State.Stats;
+        State.SetFlag("action_career_work");
+        var level = IncrementSkillLevel($"career_{trackId}");
+        var rank = CareerRankLabel(level);
+        var basePay = Random.Shared.Next(info.PayMin, info.PayMax + 1);
+        var levelBonus = level * 120;
+        var pay = ScaleMoney(basePay + levelBonus);
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 3, Stress: 5));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+
+        var promoted = level is 5 or 10 or 20;
+        return promoted
+            ? $"🎊 你獲得晉升，而家係「{info.Name}」嘅{rank}！人工都加咗唔少。(獲得 ${pay:N0})"
+            : $"💼 你返緊「{info.Name}」({rank})，努力工作為生活打拼。(獲得 ${pay:N0})";
+    }
+
     public async Task<string> WorkHardAsync()
     {
         if (State is null) return "無效狀態";
@@ -917,6 +1020,44 @@ internal sealed class GameSessionService
         return $"🏀 你同班波友打波/踢波，流曬汗，心情爽晒！(運動技能：{tier})";
     }
 
+    public bool IsMusicMaster() => GetSkillLevel("music") >= 30;
+
+    public bool IsSportsMaster() => GetSkillLevel("sports") >= 30;
+
+    public async Task<string> ProfessionalMusicianAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!IsMusicMaster()) return "你嘅音樂技能未到宗師級，未夠班出道！";
+        if (State.HasFlag("action_pro_musician")) return "今年已經接過音樂演出啦！";
+
+        var before = State.Stats;
+        State.SetFlag("action_pro_musician");
+        State.SetFlag("career_musician");
+        var pay = ScaleMoney(Random.Shared.Next(6000, 12000));
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 8, Stress: 4));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎤 憑住宗師級音樂技能，你獲邀喺場地正式演出，成為職業音樂人！(獲得 ${pay:N0})";
+    }
+
+    public async Task<string> ProfessionalAthleteAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!IsSportsMaster()) return "你嘅運動技能未到宗師級，未夠班入行！";
+        if (State.HasFlag("action_pro_athlete")) return "今年已經比賽過啦，休息下先！";
+
+        var before = State.Stats;
+        State.SetFlag("action_pro_athlete");
+        State.SetFlag("career_athlete");
+        var pay = ScaleMoney(Random.Shared.Next(6000, 12000));
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: pay, Reputation: 8, Health: -4, Stress: 6));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🏆 憑住宗師級運動技能，你代表香港出賽並奪得獎金，成為職業運動員！(獲得 ${pay:N0})";
+    }
+
     public async Task<string> ReadBooksAsync()
     {
         if (State is null) return "無效狀態";
@@ -1123,6 +1264,7 @@ internal sealed class GameSessionService
 
         var pick = candidates[Random.Shared.Next(candidates.Count)];
         State.SetFlag($"npc_friend_{pick}");
+        State.SetFlag("has_npc_friend");
         var parts = pick.Split('_');
 
         var beforeStats = State.Stats;
@@ -1132,6 +1274,15 @@ internal sealed class GameSessionService
         Changed?.Invoke();
         return $"🎉 你識到咗一個新朋友：{parts[0]}（性格：{parts[1]}），大家傾得幾投緣！";
     }
+
+    public int GetFriendshipLevel(string npcKey) => GetSkillLevel($"npcbond_{npcKey}");
+
+    public static string FriendshipTierLabel(int level) => level switch
+    {
+        >= 6 => "死黨 Best Friend",
+        >= 3 => "好友 Friend",
+        _ => "相識 Acquaintance"
+    };
 
     public async Task<string> HangOutWithNpcAsync(string npcKey)
     {
@@ -1144,6 +1295,8 @@ internal sealed class GameSessionService
 
         var before = State.Stats;
         AddActionFlag(hangoutPrefix);
+        var level = IncrementSkillLevel($"npcbond_{npcKey}");
+        var tier = FriendshipTierLabel(level);
 
         var name = npcKey.Split('_')[0];
         var roll = Random.Shared.Next(100);
@@ -1155,7 +1308,7 @@ internal sealed class GameSessionService
             StatDeltaToast = BuildDeltaToast(before, State.Stats);
             await AutosaveAsync().ConfigureAwait(false);
             Changed?.Invoke();
-            return $"🎁 你同{name}出街食飯傾偈，佢仲請埋你食飯！(獲得 ${gift:N0})";
+            return $"🎁 你同{name}出街食飯傾偈，佢仲請埋你食飯！(獲得 ${gift:N0}，friendship：{tier})";
         }
 
         if (roll < 25)
@@ -1167,7 +1320,7 @@ internal sealed class GameSessionService
                 StatDeltaToast = BuildDeltaToast(before, State.Stats);
                 await AutosaveAsync().ConfigureAwait(false);
                 Changed?.Invoke();
-                return $"🥲 {name}話手緊，你夠義氣借咗少少錢俾佢，友誼更加深厚。(花費 ${Math.Abs(loan):N0})";
+                return $"🥲 {name}話手緊，你夠義氣借咗少少錢俾佢，友誼更加深厚。(花費 ${Math.Abs(loan):N0}，friendship：{tier})";
             }
         }
 
@@ -1175,7 +1328,38 @@ internal sealed class GameSessionService
         StatDeltaToast = BuildDeltaToast(before, State.Stats);
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
-        return $"😊 你同{name}一齊食飯睇戲傾心事，放鬆咗好多。";
+        return $"😊 你同{name}一齊食飯睇戲傾心事，放鬆咗好多。(friendship：{tier})";
+    }
+
+    public async Task<string> AskFriendForFavorAsync(string npcKey)
+    {
+        ArgumentNullException.ThrowIfNull(npcKey);
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag($"npc_friend_{npcKey}")) return "你同呢位仲未係朋友！";
+        if (GetFriendshipLevel(npcKey) < 6) return "你哋交情未夠深，未係開口問呢啲嘢嘅時候。";
+        if (State.HasFlag($"action_favor_{npcKey}")) return "今年已經問過佢幫手啦，唔好搞到段友誼太緊張！";
+
+        State.SetFlag($"action_favor_{npcKey}");
+        var name = npcKey.Split('_')[0];
+        var before = State.Stats;
+
+        var roll = Random.Shared.Next(100);
+        if (roll < 60)
+        {
+            var bonus = ScaleMoney(3000);
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: bonus, Reputation: 5, FamilyBond: 3));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"💼 死黨{name}喺公司幫你搭路，介紹咗一單筍工/大生意俾你！(獲得 ${bonus:N0})";
+        }
+
+        var emergencyLoan = ScaleMoney(5000);
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: emergencyLoan, Stress: -8, FamilyBond: 5));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🤝 你手緊嗰陣，死黨{name}二話不說借咗一大筆錢俾你應急，真係過命交情！(獲得 ${emergencyLoan:N0})";
     }
 
     // --- Random HK-flavored world news, rolled once per year during AdvanceYearAsync ---
