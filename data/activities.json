@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "activities": [
+    {
+      "id": "simple_sketching",
+      "name": "簡筆畫",
+      "type": "creative",
+      "staminaCost": 5,
+      "moneyCost": 0,
+      "statModifiers": { "stress": -2, "education": 1 },
+      "minAge": 3,
+      "maxAge": 11,
+      "requiredFlags": []
+    },
+    {
+      "id": "double_dutch_skipping",
+      "name": "雙人跳繩",
+      "type": "physical",
+      "staminaCost": 15,
+      "moneyCost": 0,
+      "statModifiers": { "health": 3, "stress": -3, "familyBond": 2 },
+      "minAge": 3,
+      "maxAge": 11,
+      "requiredFlags": []
+    },
+    {
+      "id": "childrens_drama_performance",
+      "name": "兒童劇表演",
+      "type": "performance",
+      "staminaCost": 10,
+      "moneyCost": 0,
+      "statModifiers": { "stress": -2, "familyBond": 1, "reputation": 2 },
+      "minAge": 3,
+      "maxAge": 11,
+      "requiredFlags": []
+    },
+    {
+      "id": "literacy_competition",
+      "name": "識字比賽",
+      "type": "academic",
+      "staminaCost": 15,
+      "moneyCost": 0,
+      "statModifiers": { "stress": 2, "education": 3 },
+      "minAge": 3,
+      "maxAge": 11,
+      "requiredFlags": []
+    },
+    {
+      "id": "study_revision",
+      "name": "溫習",
+      "type": "academic",
+      "staminaCost": 10,
+      "moneyCost": 0,
+      "statModifiers": { "stress": 3, "education": 2 },
+      "minAge": 6,
+      "maxAge": 22,
+      "requiredFlags": []
+    },
+    {
+      "id": "tutoring_class",
+      "name": "補習",
+      "type": "academic",
+      "staminaCost": 10,
+      "moneyCost": 300,
+      "statModifiers": { "stress": 2, "education": 5 },
+      "minAge": 6,
+      "maxAge": 18,
+      "requiredFlags": []
+    },
+    {
+      "id": "drivers_license_test",
+      "name": "考駕照",
+      "type": "special",
+      "staminaCost": 20,
+      "moneyCost": 5000,
+      "statModifiers": { "reputation": 2 },
+      "minAge": 18,
+      "maxAge": 100,
+      "requiredFlags": []
+    },
+    {
+      "id": "blind_date",
+      "name": "相親",
+      "type": "special",
+      "staminaCost": 15,
+      "moneyCost": 500,
+      "statModifiers": { "stress": 3, "familyBond": 2 },
+      "minAge": 22,
+      "maxAge": 60,
+      "requiredFlags": []
+    }
+  ]
+}

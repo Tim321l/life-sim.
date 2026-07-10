@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HKLifeSim.Core.Activities;
 using HKLifeSim.Core.Domain;
 using HKLifeSim.Core.Events;
 using HKLifeSim.Core.Persistence;
@@ -21,4 +22,6 @@ namespace HKLifeSim.Core.Data;
 [JsonSerializable(typeof(EventCondition))]
 [JsonSerializable(typeof(EraFile))]
 [JsonSerializable(typeof(EventFile))]
+[JsonSerializable(typeof(Activity))]
+[JsonSerializable(typeof(ActivityFile))]
 public sealed partial class HkJsonContext : JsonSerializerContext;
