@@ -74,7 +74,7 @@ tests/
 | 5 | Avalonia desktop UI | ✅ Done |
 | 5.5 | Activity & stamina system (Core + CLI) | ✅ Done |
 | 6 | Blazor WASM web UI | ✅ Done (see note below) |
-| 7 | Digivice character widget (Desktop + Web) | ⬜ Not started |
+| 7 | Digivice character widget (Desktop + Web) | ✅ Done (7.1-7.6; 7.7 event-triggered actions is an explicitly optional stretch item, deferred) |
 
 **Note on Phase 6**: Setup/Game/Obituary are all fully built (character creation,
 era selection, the full annual event loop, a 6-tab action dashboard, financial
