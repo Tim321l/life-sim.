@@ -910,6 +910,78 @@ h1, h2, h3, h4, h5 {
 }
 
 
+/* Digivice character widget */
+.digivice {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+}
+
+.digivice-bezel {
+    width: 100%;
+    max-width: 200px;
+    background: #2b2b2e;
+    border-radius: 20px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.digivice-header {
+    background: #0f380f;
+    color: #9bbc0f;
+    font-family: Consolas, monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 4px;
+    padding: 3px 6px;
+    margin-bottom: 8px;
+}
+
+.digivice-screen {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: #9bbc0f;
+    border: 3px solid #0f380f;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.digivice-sprite {
+    position: absolute;
+    left: 25%;
+    top: 25%;
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    transform: scale(1);
+    transform-origin: top left;
+}
+
+.digivice-icon {
+    position: absolute;
+    left: 55%;
+    top: 45%;
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.digivice-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.digivice-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #555;
+    display: inline-block;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
     .game-layout {

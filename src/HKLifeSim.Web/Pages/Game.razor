@@ -197,6 +197,10 @@
         <div class="game-layout">
             <!-- Left column: Profile & Stats info -->
             <div class="sidebar-panel">
+                <DigiviceWidget @ref="_digivice"
+                                 CurrentStage="AppearanceCalculator.Calculate(Session.State).Stage"
+                                 CurrentMood="AppearanceCalculator.Calculate(Session.State).Mood"
+                                 HeaderText="@($"{Session.State.Age} 歲 · {Session.State.Profile?.Name ?? "香港仔"}")" />
                 <RadarChart Stats="Session.State.Stats" />
                 <div class="glass-panel profile-card">
                     <h3 class="section-title">👤 角色檔案 Profile</h3>
@@ -1220,6 +1224,7 @@
     private List<string> _actionLogs = [];
     private string? _actionFeedback;
     private bool _showCareerSwitcher;
+    private DigiviceWidget? _digivice;
     private string? _expandedNpcProfile;
 
     // Friend Share System Fields
@@ -1485,12 +1490,14 @@
     {
         _actionFeedback = await Session.StudyHardAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:study_hard");
     }
 
     private async Task AttendTutoringAsync()
     {
         _actionFeedback = await Session.AttendTutoringAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:attend_tutoring");
     }
 
     private async Task WorkHardAsync()
@@ -1528,12 +1535,14 @@
     {
         _actionFeedback = await Session.ProfessionalCertificationAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:professional_cert");
     }
 
     private async Task NightSchoolAsync()
     {
         _actionFeedback = await Session.NightSchoolAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:night_school");
     }
 
     private async Task KissUpToBossAsync()
@@ -1576,19 +1585,25 @@
     {
         _actionFeedback = await Session.FindPartnerAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:find_partner");
     }
 
     private async Task DatePartnerAsync()
     {
         _actionFeedback = await Session.DatePartnerAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:date_partner");
     }
 
     private async Task MarryPartnerAsync()
     {
         _actionFeedback = await Session.MarryPartnerAsync();
         AddLog(_actionFeedback);
+        await PlayDigiviceActionAsync("web:marry_partner");
     }
+
+    private Task PlayDigiviceActionAsync(string activityKey) =>
+        _digivice?.PlayActionAsync(activityKey) ?? Task.CompletedTask;
 
     private async Task DivorceAsync()
     {

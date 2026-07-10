@@ -1,0 +1,264 @@
+@using HKLifeSim.Core.Presentation
+@implements IDisposable
+@inject HttpClient Http
+
+<div class="digivice glass-panel">
+    <div class="digivice-bezel">
+        <div class="digivice-header">@HeaderText</div>
+        <div class="digivice-screen">
+            <div class="digivice-sprite" style="@BaseStyle"></div>
+            @if (_iconVisible)
+            {
+                <div class="digivice-icon" style="@IconStyle"></div>
+            }
+        </div>
+        <div class="digivice-buttons">
+            <span class="digivice-btn"></span>
+            <span class="digivice-btn"></span>
+            <span class="digivice-btn"></span>
+        </div>
+    </div>
+</div>
+
+@code {
+    private const int CellSize = 48;
+    private const int IconCellSize = 16;
+    private const int FallbackHappyDurationMs = 2000;
+    private const int SheetColumns = 3;
+    private const int SheetRows = 5;
+
+    private Stage _renderedStage;
+    private Mood _renderedMood;
+    private SpriteManifest? _manifest;
+    private CancellationTokenSource? _timerCts;
+    private PlaybackPhase _phase = PlaybackPhase.Idle;
+    private DateTime _phaseStartUtc = DateTime.UtcNow;
+    private ActionDef? _currentActionDef;
+    private bool _iconVisible;
+
+    [Parameter, EditorRequired]
+    public Stage CurrentStage { get; set; }
+
+    [Parameter, EditorRequired]
+    public Mood CurrentMood { get; set; }
+
+    [Parameter]
+    public string HeaderText { get; set; } = string.Empty;
+
+    private string BaseStyle { get; set; } = string.Empty;
+
+    private string IconStyle { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var json = await Http.GetStringAsync("sprites/manifest.json").ConfigureAwait(true);
+        _manifest = SpriteManifestRepository.Load(json);
+        _renderedStage = CurrentStage;
+        _renderedMood = CurrentMood;
+
+        _timerCts = new CancellationTokenSource();
+        _ = RunTimerLoopAsync(_timerCts.Token);
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_phase != PlaybackPhase.Idle)
+        {
+            return;
+        }
+
+        if (_renderedStage != CurrentStage || _renderedMood != CurrentMood)
+        {
+            _renderedStage = CurrentStage;
+            _renderedMood = CurrentMood;
+            _phaseStartUtc = DateTime.UtcNow;
+        }
+    }
+
+    // Plays a one-shot action animation for a Core Activity id or a "web:*" key (see the P7-Q5
+    // table). Falls back to the generic happy overlay when the key isn't mapped in the manifest.
+    public Task PlayActionAsync(string activityKey)
+    {
+        ArgumentNullException.ThrowIfNull(activityKey);
+
+        if (_manifest is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        _currentActionDef = SpriteTimeline.ResolveAction(_manifest, activityKey);
+        _phase = _currentActionDef is null ? PlaybackPhase.Happy : PlaybackPhase.Action;
+        _phaseStartUtc = DateTime.UtcNow;
+        RenderFrame();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RunTimerLoopAsync(CancellationToken token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(120));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(token).ConfigureAwait(true))
+            {
+                RenderFrame();
+                await InvokeAsync(StateHasChanged).ConfigureAwait(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on Dispose.
+        }
+    }
+
+    private void RenderFrame()
+    {
+        if (_manifest is null)
+        {
+            return;
+        }
+
+        if (_renderedStage == Stage.Tombstone)
+        {
+            RenderTombstone();
+            return;
+        }
+
+        var stageKey = StageKeyFor(_renderedStage);
+        if (!_manifest.Stages.TryGetValue(stageKey, out var stageSheet))
+        {
+            return;
+        }
+
+        var elapsedMs = (long)(DateTime.UtcNow - _phaseStartUtc).TotalMilliseconds;
+
+        switch (_phase)
+        {
+            case PlaybackPhase.Action when _currentActionDef is { } action:
+                RenderAction(stageKey, stageSheet, action, elapsedMs);
+                break;
+            case PlaybackPhase.Happy:
+                RenderHappy(stageKey, stageSheet, elapsedMs);
+                break;
+            default:
+                RenderIdle(stageKey, stageSheet, elapsedMs);
+                break;
+        }
+    }
+
+    private void RenderAction(string stageKey, StageSheet stageSheet, ActionDef action, long elapsedMs)
+    {
+        if (!stageSheet.Poses.TryGetValue(action.Pose, out var pose))
+        {
+            _phase = PlaybackPhase.Idle;
+            return;
+        }
+
+        var icon = action.Icon is not null && _manifest!.Icons.TryGetValue(action.Icon, out var iconDef) ? iconDef : null;
+        var frame = SpriteTimeline.GetActionFrame(action, pose, icon, elapsedMs);
+
+        BaseStyle = BuildBaseStyle(stageKey, pose, frame.PoseFrame);
+        SetIconStyle(action.Icon, icon, frame.IconFrame);
+
+        if (frame.IsFinished)
+        {
+            _phase = PlaybackPhase.Happy;
+            _phaseStartUtc = DateTime.UtcNow;
+        }
+    }
+
+    private void RenderHappy(string stageKey, StageSheet stageSheet, long elapsedMs)
+    {
+        if (stageSheet.Poses.TryGetValue("stand", out var pose))
+        {
+            var frameIndex = SpriteTimeline.GetLoopingFrame(pose.Frames, pose.Ms, elapsedMs);
+            BaseStyle = BuildBaseStyle(stageKey, pose, frameIndex);
+            SetIconStyle(null, null, null);
+        }
+
+        if (elapsedMs >= FallbackHappyDurationMs)
+        {
+            _phase = PlaybackPhase.Idle;
+            _phaseStartUtc = DateTime.UtcNow;
+            _renderedStage = CurrentStage;
+            _renderedMood = CurrentMood;
+        }
+    }
+
+    private void RenderIdle(string stageKey, StageSheet stageSheet, long elapsedMs)
+    {
+        var poseKey = PoseKeyForMood(_renderedMood);
+        if (!stageSheet.Poses.TryGetValue(poseKey, out var pose) && !stageSheet.Poses.TryGetValue("stand", out pose))
+        {
+            return;
+        }
+
+        var resolvedPoseKey = stageSheet.Poses.ContainsKey(poseKey) ? poseKey : "stand";
+        var frameIndex = SpriteTimeline.GetLoopingFrame(pose.Frames, pose.Ms, elapsedMs);
+        BaseStyle = BuildBaseStyle(stageKey, pose, frameIndex);
+        SetIconStyle(null, null, null);
+    }
+
+    private void RenderTombstone()
+    {
+        var sheetWidth = CellSize;
+        var sheetHeight = CellSize;
+        BaseStyle = $"background-image:url('sprites/tombstone.png');background-position:0 0;background-size:{sheetWidth}px {sheetHeight}px;";
+        _iconVisible = false;
+    }
+
+    private static string BuildBaseStyle(string stageKey, PoseDef pose, int frameIndex)
+    {
+        var sheetWidth = CellSize * SheetColumns;
+        var sheetHeight = CellSize * SheetRows;
+        var x = -(frameIndex * CellSize);
+        var y = -(pose.Row * CellSize);
+        return $"background-image:url('sprites/{stageKey}.png');background-position:{x}px {y}px;background-size:{sheetWidth}px {sheetHeight}px;";
+    }
+
+    private void SetIconStyle(string? iconKey, IconDef? icon, int? frameIndex)
+    {
+        if (iconKey is null || icon is null || frameIndex is null)
+        {
+            _iconVisible = false;
+            return;
+        }
+
+        var sheetWidth = IconCellSize * icon.Frames;
+        var x = -(frameIndex.Value * IconCellSize);
+        IconStyle = $"background-image:url('{icon.File}');background-position:{x}px 0;background-size:{sheetWidth}px {IconCellSize}px;";
+        _iconVisible = true;
+    }
+
+    private static string StageKeyFor(Stage stage) => stage switch
+    {
+        Stage.Baby => "baby",
+        Stage.Child => "child",
+        Stage.Teen => "teen",
+        Stage.Adult => "adult",
+        Stage.Elder => "elder",
+        _ => "adult",
+    };
+
+    // Idle/Happy both use "stand" — there is no dedicated happy artwork in the locked asset plan
+    // (see P7.2); AppearanceCalculator itself never returns Mood.Happy.
+    private static string PoseKeyForMood(Mood mood) => mood switch
+    {
+        Mood.Sick => "sick",
+        Mood.Stressed => "stressed",
+        Mood.Tired => "tired",
+        _ => "stand",
+    };
+
+    public void Dispose()
+    {
+        _timerCts?.Cancel();
+        _timerCts?.Dispose();
+    }
+
+    private enum PlaybackPhase
+    {
+        Idle,
+        Action,
+        Happy,
+    }
+}
