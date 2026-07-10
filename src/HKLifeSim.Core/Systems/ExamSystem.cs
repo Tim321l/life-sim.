@@ -43,12 +43,12 @@ public static class ExamSystem
         return resultMsg;
     }
 
-    public static string RunSchoolLeavingExam(GameState state, out int score)
+    public static string RunSchoolLeavingExam(GameState state, Random random, out int score)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(random);
 
         var education = state.Stats.Education;
-        var random = Random.Shared;
 
         if (state.EraId == "2024plus")
         {
@@ -94,9 +94,10 @@ public static class ExamSystem
         }
     }
 
-    public static string RunUniversityAdmission(GameState state, int examScore)
+    public static string RunUniversityAdmission(GameState state, Random random, int examScore)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(random);
 
         if (state.EraId == "2024plus")
         {
@@ -133,7 +134,6 @@ public static class ExamSystem
             if (state.HasFlag("matriculated"))
             {
                 // Conduct HKALE (高考)
-                var random = Random.Shared;
                 var alePassed = state.Stats.Education >= 55 && random.Next(100) < 70;
                 if (alePassed)
                 {

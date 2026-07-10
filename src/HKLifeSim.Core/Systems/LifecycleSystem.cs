@@ -48,7 +48,7 @@ public sealed class LifecycleSystem
         }
         else if (state.Age == 17 && !state.HasFlag("dropped_out"))
         {
-            milestoneMsg = ExamSystem.RunSchoolLeavingExam(state, out var score);
+            milestoneMsg = ExamSystem.RunSchoolLeavingExam(state, _random, out var score);
             state.SetFlag($"exam_score_{score}");
         }
         else if (state.Age == 18 && era.EraId == "2024plus" && !state.HasFlag("dropped_out"))
@@ -59,11 +59,11 @@ public sealed class LifecycleSystem
             {
                 score = parsedScore;
             }
-            milestoneMsg = ExamSystem.RunUniversityAdmission(state, score);
+            milestoneMsg = ExamSystem.RunUniversityAdmission(state, _random, score);
         }
         else if (state.Age == 19 && era.EraId != "2024plus" && !state.HasFlag("dropped_out"))
         {
-            milestoneMsg = ExamSystem.RunUniversityAdmission(state, 0);
+            milestoneMsg = ExamSystem.RunUniversityAdmission(state, _random, 0);
         }
         else if (state.Age == 20 && state.HasFlag("college_student"))
         {

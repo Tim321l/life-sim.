@@ -36,7 +36,7 @@ public sealed class ExamSystemTests
         var state = new GameState { PlayerId = "test", EraId = "2024plus", Age = 17, Stats = new StatBlock(1000, 80, 10, 50, 90, 10) };
 
         // Act
-        var details = ExamSystem.RunSchoolLeavingExam(state, out var score);
+        var details = ExamSystem.RunSchoolLeavingExam(state, new Random(1), out var score);
 
         // Assert
         Assert.True(score >= 30 && score <= 42); // Outstanding score due to 90 education
@@ -52,8 +52,8 @@ public sealed class ExamSystemTests
         var stateHigh = new GameState { PlayerId = "test", EraId = "2000s", Age = 17, Stats = new StatBlock(1000, 80, 10, 50, 95, 10) };
 
         // Act
-        var detailsLow = ExamSystem.RunSchoolLeavingExam(stateLow, out var scoreLow);
-        var detailsHigh = ExamSystem.RunSchoolLeavingExam(stateHigh, out var scoreHigh);
+        var detailsLow = ExamSystem.RunSchoolLeavingExam(stateLow, new Random(1), out var scoreLow);
+        var detailsHigh = ExamSystem.RunSchoolLeavingExam(stateHigh, new Random(1), out var scoreHigh);
 
         // Assert
         Assert.True(scoreLow < 14);
@@ -70,11 +70,44 @@ public sealed class ExamSystemTests
         var state = new GameState { PlayerId = "test", EraId = "2024plus", Age = 18 };
 
         // Act
-        var resElite = ExamSystem.RunUniversityAdmission(state, 35);
-        var resNormal = ExamSystem.RunUniversityAdmission(state, 22);
+        var resElite = ExamSystem.RunUniversityAdmission(state, new Random(1), 35);
+        var resNormal = ExamSystem.RunUniversityAdmission(state, new Random(1), 22);
 
         // Assert
         Assert.Contains("MBBS", resElite, StringComparison.Ordinal);
         Assert.Contains("香港中文大學", resNormal, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RunSchoolLeavingExam_Is_Deterministic_For_The_Same_Seed()
+    {
+        // Arrange
+        var stateA = new GameState { PlayerId = "test", EraId = "2024plus", Age = 17, Stats = new StatBlock(1000, 80, 10, 50, 50, 10) };
+        var stateB = new GameState { PlayerId = "test", EraId = "2024plus", Age = 17, Stats = new StatBlock(1000, 80, 10, 50, 50, 10) };
+
+        // Act
+        ExamSystem.RunSchoolLeavingExam(stateA, new Random(42), out var scoreA);
+        ExamSystem.RunSchoolLeavingExam(stateB, new Random(42), out var scoreB);
+
+        // Assert
+        Assert.Equal(scoreA, scoreB);
+    }
+
+    [Fact]
+    public void RunUniversityAdmission_HKALE_Is_Deterministic_For_The_Same_Seed()
+    {
+        // Arrange
+        var stateA = new GameState { PlayerId = "test", EraId = "2000s", Age = 19, Stats = new StatBlock(1000, 80, 10, 50, 55, 10) };
+        var stateB = new GameState { PlayerId = "test", EraId = "2000s", Age = 19, Stats = new StatBlock(1000, 80, 10, 50, 55, 10) };
+        stateA.SetFlag("matriculated");
+        stateB.SetFlag("matriculated");
+
+        // Act
+        var resA = ExamSystem.RunUniversityAdmission(stateA, new Random(42), 0);
+        var resB = ExamSystem.RunUniversityAdmission(stateB, new Random(42), 0);
+
+        // Assert
+        Assert.Equal(resA, resB);
+        Assert.Equal(stateA.HasFlag("university_student"), stateB.HasFlag("university_student"));
     }
 }
