@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HKLifeSim.Core.Domain;
 using HKLifeSim.Core.Events;
+using HKLifeSim.Core.Presentation;
 using HKLifeSim.Core.Systems;
 using HKLifeSim.Desktop.Services;
 
@@ -65,6 +66,15 @@ internal sealed partial class GameViewModel : ViewModelBase
 
     [ObservableProperty]
     private string? _statDeltaToast;
+
+    [ObservableProperty]
+    private Stage _characterStage;
+
+    [ObservableProperty]
+    private Mood _characterMood;
+
+    [ObservableProperty]
+    private string _characterHeaderText = string.Empty;
 
     public GameViewModel(MainViewModel main, GameState state, GenerationChain chain, EraConfig era)
     {
@@ -146,6 +156,11 @@ internal sealed partial class GameViewModel : ViewModelBase
         FamilyBondValue = _state.Stats.FamilyBond;
         EducationValue = _state.Stats.Education;
         ReputationValue = _state.Stats.Reputation;
+
+        var appearance = AppearanceCalculator.Calculate(_state);
+        CharacterStage = appearance.Stage;
+        CharacterMood = appearance.Mood;
+        CharacterHeaderText = $"{_state.Age} 歲 · {_state.Profile?.Name ?? "香港仔"}";
     }
 
     private static string FormatMoney(int money)

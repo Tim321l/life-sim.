@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="using:HKLifeSim.Desktop.Views"
+             mc:Ignorable="d" d:DesignWidth="220" d:DesignHeight="260"
+             x:Class="HKLifeSim.Desktop.Views.DigiviceView">
+
+    <Viewbox Stretch="Uniform">
+        <Border Width="220" Height="260" CornerRadius="24" Background="#2b2b2e" Padding="14">
+            <Grid RowDefinitions="Auto,*,Auto">
+
+                <Border Grid.Row="0" Background="#0f380f" CornerRadius="4" Padding="6,3" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding HeaderText, RelativeSource={RelativeSource AncestorType=views:DigiviceView}}"
+                               Foreground="#9bbc0f"
+                               FontFamily="Consolas,monospace"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center" />
+                </Border>
+
+                <Border Grid.Row="1" Background="#9bbc0f" BorderBrush="#0f380f" BorderThickness="3" CornerRadius="4">
+                    <Grid>
+                        <Rectangle Fill="#8bac0f" Opacity="0.35" Margin="4" />
+                        <Canvas Width="144" Height="144" ClipToBounds="True">
+                            <Image x:Name="BaseImage" Width="48" Height="48" Canvas.Left="48" Canvas.Top="48"
+                                   RenderOptions.BitmapInterpolationMode="None" />
+                            <Image x:Name="IconImage" Width="16" Height="16" Canvas.Left="88" Canvas.Top="72"
+                                   RenderOptions.BitmapInterpolationMode="None" IsVisible="False" />
+                        </Canvas>
+                    </Grid>
+                </Border>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,10,0,0">
+                    <Ellipse Width="14" Height="14" Fill="#555" />
+                    <Ellipse Width="14" Height="14" Fill="#555" />
+                    <Ellipse Width="14" Height="14" Fill="#555" />
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Viewbox>
+
+</UserControl>

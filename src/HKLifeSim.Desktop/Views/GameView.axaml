@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HKLifeSim.Desktop.ViewModels"
+             xmlns:views="using:HKLifeSim.Desktop.Views"
              xmlns:conv="using:Avalonia.Data.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -8,7 +9,8 @@
              x:Class="HKLifeSim.Desktop.Views.GameView"
              x:DataType="vm:GameViewModel">
 
-    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <Grid ColumnDefinitions="*,Auto">
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Margin="24">
 
         <!-- Stat bar -->
         <Border Grid.Row="0" Classes="card" Margin="0,0,0,16">
@@ -74,6 +76,13 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+    </Grid>
+
+    <views:DigiviceView Grid.Column="1" Width="200" Margin="0,24,24,0" VerticalAlignment="Top"
+                         CurrentStage="{Binding CharacterStage}"
+                         CurrentMood="{Binding CharacterMood}"
+                         HeaderText="{Binding CharacterHeaderText}" />
 
     </Grid>
 
