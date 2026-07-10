@@ -35,4 +35,18 @@
       SkipUnchangedFiles="true" />
   </Target>
 
+  <!-- Same reasoning as CopyGameContentIntoWwwroot above, applied to the shared Digivice sprite
+       assets: they must be physically present under wwwroot/ before Blazor's static asset
+       discovery runs. %(RecursiveDir) is needed here (unlike the data/ copy) to preserve the
+       icons/ subfolder. -->
+  <Target Name="CopyDigiviceAssetsIntoWwwroot" BeforeTargets="BeforeBuild;DispatchToInnerBuilds">
+    <ItemGroup>
+      <DigiviceAsset Include="..\..\assets\sprites\**\*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(DigiviceAsset)"
+      DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\sprites\%(RecursiveDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

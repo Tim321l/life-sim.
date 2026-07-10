@@ -36,3 +36,6 @@ saves/
 ## HKLifeSim.Web: era/event JSON is mirrored into wwwroot/data/ at build time from the
 ## repo's single source of truth (data/) — see HKLifeSim.Web.csproj.
 src/HKLifeSim.Web/wwwroot/data/
+
+## Same reasoning, for Digivice sprite assets mirrored from assets/sprites/.
+src/HKLifeSim.Web/wwwroot/sprites/

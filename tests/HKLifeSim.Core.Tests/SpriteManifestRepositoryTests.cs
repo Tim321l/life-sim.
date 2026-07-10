@@ -137,6 +137,19 @@ public sealed class SpriteManifestRepositoryTests
         manifest.Actions.Should().ContainKey("溫習");
     }
 
+    [Fact]
+    public void Load_Succeeds_For_The_Real_Manifest_Data_File()
+    {
+        var json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "assets", "sprites", "manifest.json"));
+
+        var manifest = SpriteManifestRepository.Load(json);
+
+        manifest.Stages.Keys.Should().BeEquivalentTo(["baby", "child", "teen", "adult", "elder"]);
+        manifest.Icons.Keys.Should().BeEquivalentTo(["book", "pencil", "rope", "mask", "wheel", "heart", "alert"]);
+        manifest.Actions.Should().ContainKey("study_revision");
+        manifest.Actions.Should().ContainKey("web:study_hard");
+    }
+
     private static string ValidStageJson() =>
         """{"child":{"sheet":"child.png","poses":{"stand":{"row":0,"frames":2,"ms":500},"sit":{"row":1,"frames":2,"ms":500}}}}""";
 

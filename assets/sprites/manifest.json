@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "stages": {
+    "baby": {
+      "sheet": "baby.png",
+      "poses": {
+        "stand": { "row": 0, "frames": 2, "ms": 500 },
+        "sit": { "row": 1, "frames": 2, "ms": 500 },
+        "sick": { "row": 2, "frames": 2, "ms": 300 },
+        "stressed": { "row": 3, "frames": 3, "ms": 300 },
+        "tired": { "row": 4, "frames": 2, "ms": 300 }
+      }
+    },
+    "child": {
+      "sheet": "child.png",
+      "poses": {
+        "stand": { "row": 0, "frames": 2, "ms": 500 },
+        "sit": { "row": 1, "frames": 2, "ms": 500 },
+        "sick": { "row": 2, "frames": 2, "ms": 300 },
+        "stressed": { "row": 3, "frames": 3, "ms": 300 },
+        "tired": { "row": 4, "frames": 2, "ms": 300 }
+      }
+    },
+    "teen": {
+      "sheet": "teen.png",
+      "poses": {
+        "stand": { "row": 0, "frames": 2, "ms": 500 },
+        "sit": { "row": 1, "frames": 2, "ms": 500 },
+        "sick": { "row": 2, "frames": 2, "ms": 300 },
+        "stressed": { "row": 3, "frames": 3, "ms": 300 },
+        "tired": { "row": 4, "frames": 2, "ms": 300 }
+      }
+    },
+    "adult": {
+      "sheet": "adult.png",
+      "poses": {
+        "stand": { "row": 0, "frames": 2, "ms": 500 },
+        "sit": { "row": 1, "frames": 2, "ms": 500 },
+        "sick": { "row": 2, "frames": 2, "ms": 300 },
+        "stressed": { "row": 3, "frames": 3, "ms": 300 },
+        "tired": { "row": 4, "frames": 2, "ms": 300 }
+      }
+    },
+    "elder": {
+      "sheet": "elder.png",
+      "poses": {
+        "stand": { "row": 0, "frames": 2, "ms": 500 },
+        "sit": { "row": 1, "frames": 2, "ms": 500 },
+        "sick": { "row": 2, "frames": 2, "ms": 300 },
+        "stressed": { "row": 3, "frames": 3, "ms": 300 },
+        "tired": { "row": 4, "frames": 2, "ms": 300 }
+      }
+    }
+  },
+  "icons": {
+    "book": { "file": "icons/book.png", "frames": 2, "ms": 400, "anchor": "front" },
+    "pencil": { "file": "icons/pencil.png", "frames": 1, "ms": 400, "anchor": "front" },
+    "rope": { "file": "icons/rope.png", "frames": 2, "ms": 150, "anchor": "overlay" },
+    "mask": { "file": "icons/mask.png", "frames": 1, "ms": 400, "anchor": "front" },
+    "wheel": { "file": "icons/wheel.png", "frames": 1, "ms": 400, "anchor": "front" },
+    "heart": { "file": "icons/heart.png", "frames": 2, "ms": 300, "anchor": "overlay" },
+    "alert": { "file": "icons/alert.png", "frames": 1, "ms": 500, "anchor": "overlay" }
+  },
+  "actions": {
+    "study_revision": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "tutoring_class": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "literacy_competition": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "simple_sketching": { "pose": "sit", "icon": "pencil", "durationMs": 2000 },
+    "double_dutch_skipping": { "pose": "stand", "icon": "rope", "durationMs": 2000, "poseMs": 150 },
+    "childrens_drama_performance": { "pose": "stand", "icon": "mask", "durationMs": 2000 },
+    "drivers_license_test": { "pose": "sit", "icon": "wheel", "durationMs": 2000 },
+    "blind_date": { "pose": "stand", "icon": "heart", "durationMs": 2000 },
+    "web:study_hard": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "web:attend_tutoring": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "web:night_school": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "web:professional_cert": { "pose": "sit", "icon": "book", "durationMs": 2000 },
+    "web:find_partner": { "pose": "stand", "icon": "heart", "durationMs": 2000 },
+    "web:date_partner": { "pose": "stand", "icon": "heart", "durationMs": 2000 },
+    "web:marry_partner": { "pose": "stand", "icon": "heart", "durationMs": 2000 }
+  }
+}
