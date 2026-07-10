@@ -5,7 +5,7 @@
   "outputDirectory": "publish/wwwroot",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!css|js|data|_framework|_content|lib|favicon\\.png|icon-192\\.png).*)",
       "destination": "/index.html"
     }
   ]
