@@ -5,8 +5,8 @@ echo "Downloading .NET install script..."
 curl -sSL -O https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
 
-echo "Installing .NET SDK 10.0.301..."
-./dotnet-install.sh --version 10.0.301 --install-dir ./.dotnet
+echo "Installing .NET SDK from global.json..."
+./dotnet-install.sh --jsonfile global.json --install-dir ./.dotnet
 
 echo "Configuring environment variables..."
 export DOTNET_ROOT=$(pwd)/.dotnet
@@ -17,4 +17,5 @@ echo "Building Blazor WebAssembly static assets..."
 dotnet publish src/HKLifeSim.Web/HKLifeSim.Web.csproj -c Release -o publish
 
 echo "Vercel Build finished successfully!"
+
 
