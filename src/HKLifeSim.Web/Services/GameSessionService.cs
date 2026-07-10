@@ -202,6 +202,21 @@ internal sealed class GameSessionService
         {
             var before = State.Stats;
             _engine.ApplyChoice(State, CurrentEvent, choiceId);
+
+            // Sync property flags
+            if (State.HasFlag("legacy_owns_flat") && !State.HasFlag("homeowner"))
+            {
+                State.SetFlag("homeowner");
+                State.SetFlag("home_private");
+            }
+            else if (!State.HasFlag("legacy_owns_flat") && State.HasFlag("homeowner"))
+            {
+                State.FlagsSet.Remove("homeowner");
+                State.FlagsSet.Remove("home_tonglau");
+                State.FlagsSet.Remove("home_private");
+                State.FlagsSet.Remove("home_luxury");
+            }
+
             StatDeltaToast = BuildDeltaToast(before, State.Stats);
             await AutosaveAsync().ConfigureAwait(false);
 
@@ -227,6 +242,7 @@ internal sealed class GameSessionService
     }
 
     public string? MilestoneMessage { get; set; }
+    public string? YearlyFinanceSummary { get; set; }
 
     public async Task AdvanceYearAsync()
     {
@@ -262,7 +278,34 @@ internal sealed class GameSessionService
                 State.FlagsSet.Remove(flag);
             }
 
+            YearlyFinanceSummary = null;
             MilestoneMessage = _lifecycle.AdvanceYear(State, Era);
+
+            if (State.IsAlive && State.Age >= 18)
+            {
+                var ledger = CalculateLedgerForCurrentYear();
+                LastYearLedger = ledger;
+
+                var beforeStats = State.Stats;
+                var netSavings = ledger.NetSavings;
+
+                var stressDelta = 0;
+                var healthDelta = 0;
+                if (beforeStats.Money + netSavings < 0)
+                {
+                    stressDelta = 8;
+                    healthDelta = -3;
+                }
+
+                State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: netSavings, Stress: stressDelta, Health: healthDelta));
+
+                YearlyFinanceSummary = $"💰 財務結算: 總收入 ${ledger.TotalIncome:N0} | 總開支 ${ledger.TotalExpense:N0} | 淨儲蓄: {(ledger.NetSavings >= 0 ? "+" : "")}${ledger.NetSavings:N0}";
+                if (beforeStats.Money + netSavings < 0)
+                {
+                    YearlyFinanceSummary += " ⚠️ 你已陷入負債，壓力大增且健康受損！";
+                }
+            }
+
             await AutosaveAsync().ConfigureAwait(false);
 
             if (!State.IsAlive)
@@ -986,6 +1029,7 @@ internal sealed class GameSessionService
         State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: -price));
         State.SetFlag("homeowner");
         State.SetFlag($"home_{tier}");
+        State.SetFlag("legacy_owns_flat");
 
         var name = tier switch
         {
@@ -1024,6 +1068,7 @@ internal sealed class GameSessionService
         State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: finalPrice));
         State.FlagsSet.Remove("homeowner");
         State.FlagsSet.Remove($"home_{tier}");
+        State.FlagsSet.Remove("legacy_owns_flat");
 
         var name = tier switch
         {
@@ -1706,6 +1751,15 @@ internal sealed class GameSessionService
         CurrentEvent = (State.IsAlive && !State.HasFlag("event_resolved_for_year")) ? _engine.SelectNextEvent(State) : null;
         StatDeltaToast = null;
         SaveErrorMessage = null;
+
+        // Sync legacy property flags
+        if (State.HasFlag("legacy_owns_flat") && !State.HasFlag("homeowner"))
+        {
+            State.SetFlag("homeowner");
+            State.SetFlag("home_private");
+        }
+
+        LastYearLedger = CalculateLedgerForCurrentYear();
     }
 
     private static string BuildDeltaToast(StatBlock before, StatBlock after)
@@ -1732,6 +1786,223 @@ internal sealed class GameSessionService
 
         var sign = delta > 0 ? "+" : string.Empty;
         yield return $"{label} {sign}{delta}";
+    }
+
+    // --- Yearly Financial Ledger and Advanced Actions ---
+
+    internal sealed class FinancialLedger
+    {
+        public int Year { get; set; }
+        public int Age { get; set; }
+        
+        // Income
+        public int SalaryIncome { get; set; }
+        public int SpouseIncome { get; set; }
+        public int OtherIncome { get; set; }
+        public int TotalIncome => SalaryIncome + SpouseIncome + OtherIncome;
+        
+        // Expense
+        public int RentExpense { get; set; }
+        public int LivingExpense { get; set; }
+        public int RatesExpense { get; set; }
+        public int FamilyExpense { get; set; }
+        public int TaxExpense { get; set; }
+        public int OtherExpense { get; set; }
+        public int TotalExpense => RentExpense + LivingExpense + RatesExpense + FamilyExpense + TaxExpense + OtherExpense;
+        
+        public int NetSavings => TotalIncome - TotalExpense;
+    }
+
+    public FinancialLedger? LastYearLedger { get; private set; }
+
+    public FinancialLedger CalculateLedgerForCurrentYear()
+    {
+        var ledger = new FinancialLedger();
+        if (State is null) return ledger;
+        
+        ledger.Year = State.CurrentYear;
+        ledger.Age = State.Age;
+
+        if (State.Age < 18)
+        {
+            return ledger;
+        }
+
+        // 1. Salary Income
+        var track = GetChosenCareerTrack();
+        if (track is not null && CareerTrackInfo.TryGetValue(track, out var info))
+        {
+            var level = GetSkillLevel($"career_{track}");
+            var basePay = (info.PayMin + info.PayMax) / 2;
+            var levelBonus = level * 120;
+            ledger.SalaryIncome = ScaleMoney(basePay + levelBonus) * 12;
+        }
+
+        // 2. Spouse Income
+        if (State.HasFlag("married"))
+        {
+            var randomSpousePay = Random.Shared.Next(1600, 3200);
+            ledger.SpouseIncome = ScaleMoney(randomSpousePay) * 12;
+        }
+
+        // 3. Rent vs Property Rates/Maintenance
+        var hasHome = State.HasFlag("homeowner") || State.HasFlag("legacy_owns_flat");
+        if (hasHome)
+        {
+            ledger.RatesExpense = ScaleMoney(120) * 12;
+        }
+        else
+        {
+            ledger.RentExpense = ScaleMoney(600) * 12;
+        }
+
+        // 4. Living Cost (Eating & Essentials)
+        var baseLivingCost = 800;
+        if (State.HasFlag("family_poor")) baseLivingCost = 450;
+        else if (State.HasFlag("family_rich")) baseLivingCost = 2200;
+        ledger.LivingExpense = ScaleMoney(baseLivingCost) * 12;
+
+        // 5. Dependents (Spouse & Kids)
+        if (State.HasFlag("married"))
+        {
+            ledger.FamilyExpense += ScaleMoney(300) * 12;
+        }
+        var childrenCount = GetChildren().Count;
+        if (childrenCount > 0)
+        {
+            ledger.FamilyExpense += childrenCount * ScaleMoney(250) * 12;
+        }
+
+        // 6. Tax (10% of total income over threshold of $36,000 scaled)
+        var taxThreshold = ScaleMoney(36000);
+        var taxableIncome = ledger.TotalIncome - taxThreshold;
+        if (taxableIncome > 0)
+        {
+            ledger.TaxExpense = (int)Math.Round(taxableIncome * 0.10);
+        }
+
+        return ledger;
+    }
+
+    // --- Dynamic Study & Job Actions ---
+
+    public async Task<string> ApplyForSubsidyAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!State.HasFlag("family_poor")) return "你並非出身基層家庭，不符合申請政府津貼資格！";
+        if (State.Stats.Money >= ScaleMoney(2000)) return "你嘅存款仲夠用，唔符合低收入津貼申請門檻！";
+        if (State.HasFlag("action_subsidy")) return "今年已經申請過津貼啦。";
+
+        var before = State.Stats;
+        var subsidy = ScaleMoney(1500);
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: subsidy, Reputation: 2));
+        State.SetFlag("action_subsidy");
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"政府審批通過，發放低收入市民生活津貼！(獲得 ${subsidy:N0})";
+    }
+
+    public async Task<string> ProfessionalCertificationAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (State.Stats.Education < 50) return "你嘅學力水平不足，暫時無法報考專業資格證書！";
+        var cost = ScaleMoney(2500);
+        if (State.Stats.Money < cost) return $"你唔夠錢支付報考與培訓費用！需要 ${cost:N0}";
+        if (State.HasFlag("action_cert")) return "今年已經報考過專業證書。";
+
+        var before = State.Stats;
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: -cost, Education: 12, Reputation: 6, Stress: 8));
+        State.SetFlag("action_cert");
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"你努力苦讀並通過考試，成功考取專業資格證書！(花費 ${cost:N0})";
+    }
+
+    public async Task<string> NightSchoolAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (State.Age < 18) return "未成年人請專心於日間學校學習！";
+        if (State.HasFlag("university_student") || State.HasFlag("college_student")) return "你已經在日間高等院校就讀！";
+        var cost = ScaleMoney(3000);
+        if (State.Stats.Money < cost) return $"你唔夠錢報讀夜校課程！需要 ${cost:N0}";
+        if (State.HasFlag("action_nightschool")) return "今年已經去過夜校上課啦。";
+
+        var before = State.Stats;
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: -cost, Education: 10, Stress: 6));
+        State.SetFlag("action_nightschool");
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"你白天打工，夜晚去夜校進修，非常拼搏！(花費 ${cost:N0})";
+    }
+
+    public async Task<string> KissUpToBossAsync()
+    {
+        if (State is null) return "無效狀態";
+        var track = GetChosenCareerTrack();
+        if (track is null) return "你仲未有工作，冇得拍馬屁！";
+        if (State.HasFlag("action_kiss_up")) return "拍馬屁唔好太頻繁，否則會適得其反！";
+
+        var before = State.Stats;
+        State.SetFlag("action_kiss_up");
+        var success = Random.Shared.Next(100) < 70;
+        if (success)
+        {
+            var bonus = ScaleMoney(Random.Shared.Next(1000, 2500));
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: bonus, Reputation: 5, Stress: -2));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"你喺飯局瘋狂奉承老細，老細笑逐顏開，私下俾咗份表現金你！(獲得 ${bonus:N0})";
+        }
+        else
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Reputation: -5, Stress: 6));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return "你嘅奉承顯得太過刻意，反而引起老細反感，同事亦向你投來鄙視眼光！";
+        }
+    }
+
+    public async Task<string> JobHoppingAsync()
+    {
+        if (State is null) return "無效狀態";
+        var track = GetChosenCareerTrack();
+        if (track is null) return "你仲未有工作，無法跳槽！";
+        if (State.HasFlag("action_job_hop")) return "今年已經嘗試過跳槽，請等下一年。";
+
+        var before = State.Stats;
+        State.SetFlag("action_job_hop");
+
+        // Success probability scales with Education and Reputation
+        var prob = 30 + (State.Stats.Education / 2) + (State.Stats.Reputation / 2);
+        prob = Math.Clamp(prob, 20, 85);
+
+        var success = Random.Shared.Next(100) < prob;
+        if (success)
+        {
+            var level = IncrementSkillLevel($"career_{track}");
+            var rank = CareerRankLabel(level);
+            var info = CareerTrackInfo[track];
+            var pay = ScaleMoney((info.PayMin + info.PayMax) / 2 + level * 120);
+
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Reputation: 6, Stress: 5));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🎊 跳槽成功！你跳槽去咗新公司擔任「{info.Name}」({rank})，職位同薪水都有所提升！";
+        }
+        else
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 8));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return "跳槽面試失敗，你唯有留喺原公司繼續做，心情感到沮喪。";
+        }
     }
 }
 

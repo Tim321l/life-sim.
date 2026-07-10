@@ -495,6 +495,76 @@
                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_pro_athlete") || Session.IsBusy)" @onclick="ProfessionalAthleteAsync">🏆 出賽 Compete</button>
                                     </div>
                                 }
+
+                                <!-- Low Income Subsidy -->
+                                @if (Session.State.HasFlag("family_poor") && Session.State.Stats.Money < Session.ScaleMoney(2000))
+                                {
+                                    <div class="action-card" style="border-color: #e67e22; background: rgba(230, 126, 34, 0.05);">
+                                         <div class="action-card-header">
+                                             <span class="action-card-title">💰 申請政府津貼 Subsidy</span>
+                                             <span class="action-card-limit">@(Session.State.HasFlag("action_subsidy") ? "0/1" : "1/1")</span>
+                                         </div>
+                                         <p class="action-card-desc">為低收入家庭特別設計，補貼生活基本開支。</p>
+                                         <p class="action-card-effects">金錢 +$@FormatAmount(Session.ScaleMoney(1500)) · 聲望 +2</p>
+                                         <button type="button" class="primary-button action-button" style="background: #e67e22; border-color: #e67e22; color:#fff;" disabled="@(Session.State.HasFlag("action_subsidy") || Session.IsBusy)" @onclick="ApplyForSubsidyAsync">領取津貼 Apply</button>
+                                    </div>
+                                }
+
+                                <!-- Professional Certification -->
+                                @if (Session.State.Stats.Education >= 50)
+                                {
+                                     <div class="action-card">
+                                         <div class="action-card-header">
+                                             <span class="action-card-title">📖 專業資格證書 Cert</span>
+                                             <span class="action-card-limit">@(Session.State.HasFlag("action_cert") ? "0/1" : "1/1")</span>
+                                         </div>
+                                         <p class="action-card-desc">報考會計、IT、金融或工程等認可專業認證，大幅提升個人學歷與聲望。</p>
+                                         <p class="action-card-effects cost">學歷 +12 · 聲望 +6 · 壓力 +8 · 金錢 -$@FormatAmount(Session.ScaleMoney(2500))</p>
+                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_cert") || Session.State.Stats.Money < Session.ScaleMoney(2500) || Session.IsBusy)" @onclick="ProfessionalCertificationAsync">報考證書 Exam</button>
+                                     </div>
+                                }
+
+                                <!-- Night School -->
+                                @if (!IsStudent())
+                                {
+                                     <div class="action-card">
+                                         <div class="action-card-header">
+                                             <span class="action-card-title">🏫 夜校進修 Night School</span>
+                                             <span class="action-card-limit">@(Session.State.HasFlag("action_nightschool") ? "0/1" : "1/1")</span>
+                                         </div>
+                                         <p class="action-card-desc">白天打工，夜晚讀書。雖然壓力沉重，但能有效彌補學歷不足。</p>
+                                         <p class="action-card-effects cost">學歷 +10 · 壓力 +6 · 金錢 -$@FormatAmount(Session.ScaleMoney(3000))</p>
+                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_nightschool") || Session.State.Stats.Money < Session.ScaleMoney(3000) || Session.IsBusy)" @onclick="NightSchoolAsync">夜校進修 Study</button>
+                                     </div>
+                                }
+
+                                <!-- Kiss up to boss -->
+                                @if (IsWorker())
+                                {
+                                     <div class="action-card">
+                                         <div class="action-card-header">
+                                             <span class="action-card-title">🗣️ 討好上司 Flatter Boss</span>
+                                             <span class="action-card-limit">@(Session.State.HasFlag("action_kiss_up") ? "0/1" : "1/1")</span>
+                                         </div>
+                                         <p class="action-card-desc">阿諛奉承，討好管理層以爭取表現獎金（有機會被同事鄙視）。</p>
+                                         <p class="action-card-effects">70%成功: 金錢+ · 聲望+5 | 30%失敗: 聲望-5 · 壓力+6</p>
+                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_kiss_up") || Session.IsBusy)" @onclick="KissUpToBossAsync">拍馬屁 Flatter</button>
+                                     </div>
+                                }
+
+                                <!-- Job Hopping -->
+                                @if (IsWorker())
+                                {
+                                     <div class="action-card">
+                                         <div class="action-card-header">
+                                             <span class="action-card-title">🔄 跳槽轉職 Job Hopping</span>
+                                             <span class="action-card-limit">@(Session.State.HasFlag("action_job_hop") ? "0/1" : "1/1")</span>
+                                         </div>
+                                         <p class="action-card-desc">向同行競爭對手投遞履歷以爭取直接晉升（學歷和聲望能提高成功率）。</p>
+                                         <p class="action-card-effects">成功: 職位晉升 · 薪資上升 | 失敗: 壓力 +8</p>
+                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_job_hop") || Session.IsBusy)" @onclick="JobHoppingAsync">跳槽轉工 Jump Job</button>
+                                     </div>
+                                }
                             }
                         </div>
                     }
@@ -719,13 +789,120 @@
                     }
                     else if (_activeTab == "assets")
                     {
-                        <h4 class="section-title">🏡 房產購置與套現 Assets</h4>
+                        <h4 class="section-title">💰 財務與資產 Dashboard</h4>
                         @if (Session.State.Age < 18)
                         {
-                            <p class="text-secondary" style="text-align:center; padding-top:40px;">未滿 18 歲禁止購置物業。先專心讀書/玩啦！</p>
+                            <p class="text-secondary" style="text-align:center; padding-top:40px;">未滿 18 歲禁止購置物業。由家人扶養，暫無個人收支。</p>
                         }
                         else
                         {
+                            <!-- Financial Ledger Card -->
+                            <div class="glass-panel" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--card-border); padding: 18px; margin-bottom: 24px; text-align: left; border-radius: 12px;">
+                                <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: bold; color: var(--accent); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                    💰 財務年度收支 Ledger (@(Session.State.CurrentYear - 1)年收支結算)
+                                </h5>
+                                @{
+                                    var ledger = Session.LastYearLedger ?? Session.CalculateLedgerForCurrentYear();
+                                }
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                                    <div>
+                                        <div style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 4px; margin-bottom: 6px;">收入 Incomes</div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                            <span>💼 薪金收入 Salary:</span>
+                                            <span style="color:#58db91;">+$@FormatAmount(ledger.SalaryIncome)</span>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                            <span>💖 配偶收入 Spouse:</span>
+                                            <span style="color:#58db91;">+$@FormatAmount(ledger.SpouseIncome)</span>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight: bold; border-top: 1px dashed var(--card-border); padding-top: 4px; margin-top: 4px;">
+                                            <span>總收入 Total:</span>
+                                            <span style="color:#58db91;">+$@FormatAmount(ledger.TotalIncome)</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted); border-bottom: 1px solid var(--card-border); padding-bottom: 4px; margin-bottom: 6px;">支出 Outcomes</div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                            <span>🍽️ 基本生活 Living:</span>
+                                            <span style="color:var(--stress);">-$@FormatAmount(ledger.LivingExpense)</span>
+                                        </div>
+                                        @if (ledger.RentExpense > 0)
+                                        {
+                                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                                <span>🏠 房屋租金 Rent:</span>
+                                                <span style="color:var(--stress);">-$@FormatAmount(ledger.RentExpense)</span>
+                                            </div>
+                                        }
+                                        @if (ledger.RatesExpense > 0)
+                                        {
+                                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                                <span>🛠️ 物業雜費 Rates/Maint:</span>
+                                                <span style="color:var(--stress);">-$@FormatAmount(ledger.RatesExpense)</span>
+                                            </div>
+                                        }
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                            <span>👨‍👩‍👧 家人撫養 Family:</span>
+                                            <span style="color:var(--stress);">-$@FormatAmount(ledger.FamilyExpense)</span>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                                            <span>💸 薪俸稅款 Taxes:</span>
+                                            <span style="color:var(--stress);">-$@FormatAmount(ledger.TaxExpense)</span>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight: bold; border-top: 1px dashed var(--card-border); padding-top: 4px; margin-top: 4px;">
+                                            <span>總開支 Total:</span>
+                                            <span style="color:var(--stress);">-$@FormatAmount(ledger.TotalExpense)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.95rem; border-top: 1px solid var(--card-border); padding-top: 8px; margin-top: 12px;">
+                                    <span>💰 淨儲蓄 Net Annual Savings:</span>
+                                    <span style="color: @(ledger.NetSavings >= 0 ? "#58db91" : "var(--stress)");">
+                                        @(ledger.NetSavings >= 0 ? "+" : "")$@FormatAmount(ledger.NetSavings)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Owned Properties List -->
+                            <div class="glass-panel" style="background: rgba(0, 0, 0, 0.15); border: 1px solid var(--card-border); padding: 16px; margin-bottom: 24px; text-align: left; border-radius: 12px;">
+                                <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: bold; color: var(--accent); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                    🏡 已持有房產 Owned Properties
+                                </h5>
+                                @if (!Session.State.HasFlag("homeowner"))
+                                {
+                                    <p class="text-secondary" style="font-size:0.88rem; margin:0; padding:10px 0;">你目前未持有任何房產。每月需繳納房屋租金以維持生活。</p>
+                                }
+                                else
+                                {
+                                    <div style="background: rgba(46, 204, 113, 0.08); border: 1px solid #2ecc71; border-radius: 8px; padding: 12px;">
+                                        @if (Session.State.HasFlag("home_tonglau"))
+                                        {
+                                            <div style="font-weight: bold; font-size:1rem; color:#58db91; display:flex; justify-content:space-between;">
+                                                <span>🏚️ 舊區唐樓單位 Tong Lau / Public Housing</span>
+                                                <span style="font-size:0.85rem; color:var(--text-secondary);">估值: $@FormatAmount((int)(Session.Era?.AverageHousePrice * 0.5m ?? 0m))</span>
+                                            </div>
+                                            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 0 0;">免除房屋租金開支，但每年須扣除少量物業雜費。</p>
+                                        }
+                                        else if (Session.State.HasFlag("home_private"))
+                                        {
+                                            <div style="font-weight: bold; font-size:1rem; color:#58db91; display:flex; justify-content:space-between;">
+                                                <span>🏢 市區私人住宅 Private Apartment</span>
+                                                <span style="font-size:0.85rem; color:var(--text-secondary);">估值: $@FormatAmount((int)(Session.Era?.AverageHousePrice ?? 0m))</span>
+                                            </div>
+                                            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 0 0;">免除房屋租金開支，但每年須扣除物業管理與維護雜費。</p>
+                                        }
+                                        else if (Session.State.HasFlag("home_luxury"))
+                                        {
+                                            <div style="font-weight: bold; font-size:1rem; color:#58db91; display:flex; justify-content:space-between;">
+                                                <span>🏰 半山頂級豪宅 Luxury Villa</span>
+                                                <span style="font-size:0.85rem; color:var(--text-secondary);">估值: $@FormatAmount((int)(Session.Era?.AverageHousePrice * 2.5m ?? 0m))</span>
+                                            </div>
+                                            <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 0 0;">彰顯尊貴身份，免除租金，但物業雜費較高。</p>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <h5 style="text-align:left; font-weight:bold; margin-bottom:12px; font-size:1.05rem;">🛒 房產交易市場 Property Market</h5>
                             <div class="properties-list">
                                 <!-- Tier 1 Property: Tong Lau or Public Housing -->
                                 <div class="property-item">
@@ -1231,6 +1408,10 @@
         else
         {
             CheckMilestone();
+            if (Session.YearlyFinanceSummary is not null)
+            {
+                AddLog(Session.YearlyFinanceSummary);
+            }
             if (Session.WorldNewsMessage is not null)
             {
                 AddLog($"📰 {Session.WorldNewsMessage}");
@@ -1270,6 +1451,10 @@
         else
         {
             CheckMilestone();
+            if (Session.YearlyFinanceSummary is not null)
+            {
+                AddLog(Session.YearlyFinanceSummary);
+            }
         }
     }
 
@@ -1330,6 +1515,36 @@
     private async Task GigWorkAsync()
     {
         _actionFeedback = await Session.GigWorkAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task ApplyForSubsidyAsync()
+    {
+        _actionFeedback = await Session.ApplyForSubsidyAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task ProfessionalCertificationAsync()
+    {
+        _actionFeedback = await Session.ProfessionalCertificationAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task NightSchoolAsync()
+    {
+        _actionFeedback = await Session.NightSchoolAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task KissUpToBossAsync()
+    {
+        _actionFeedback = await Session.KissUpToBossAsync();
+        AddLog(_actionFeedback);
+    }
+
+    private async Task JobHoppingAsync()
+    {
+        _actionFeedback = await Session.JobHoppingAsync();
         AddLog(_actionFeedback);
     }
 
