@@ -150,6 +150,24 @@ public sealed class SaveRoundTripTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadAsync_Defaults_Stamina_To_Fifty_When_Absent_From_A_Pre_Stamina_Save()
+    {
+        var store = new FileSaveStore(_tempDirectory);
+        var manager = new SaveManager(store, TimeProvider.System);
+
+        const string preStaminaJson = """
+            {"schemaVersion":2,"state":{"playerId":"player-1","eraId":"2024plus","stats":{"money":100,"health":80,"stress":10,"familyBond":50,"education":10,"reputation":10}}}
+            """;
+        await store.WriteAsync("pre-stamina-slot", preStaminaJson, TestContext.Current.CancellationToken);
+
+        var loaded = await manager.LoadAsync("pre-stamina-slot", TestContext.Current.CancellationToken);
+
+        loaded.Should().NotBeNull();
+        loaded!.Stats.MaxStamina.Should().Be(50);
+        loaded.Stats.CurrentStamina.Should().Be(50);
+    }
+
+    [Fact]
     public async Task SaveAsync_Then_LoadLineageAsync_Round_Trips_A_SchemaVersion_2_Save_With_Lineage()
     {
         var store = new FileSaveStore(_tempDirectory);

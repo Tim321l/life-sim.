@@ -9,7 +9,9 @@
     Stress: 86,
     FamilyBond: 100,
     Education: 21,
-    Reputation: 27
+    Reputation: 27,
+    MaxStamina: 50,
+    CurrentStamina: 50
   },
   FlagsSet: [
     dating,

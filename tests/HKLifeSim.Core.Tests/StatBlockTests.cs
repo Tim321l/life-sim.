@@ -159,6 +159,36 @@ public sealed class StatBlockTests
         stats.Reputation.Should().Be(100);
     }
 
+    [Fact]
+    public void Default_Stamina_Parameters_Are_Fifty_When_Not_Specified()
+    {
+        var stats = new StatBlock(Money: 0, Health: 50, Stress: 50, FamilyBond: 50, Education: 50, Reputation: 50);
+
+        stats.MaxStamina.Should().Be(50);
+        stats.CurrentStamina.Should().Be(50);
+    }
+
+    [Fact]
+    public void ResetStamina_Sets_CurrentStamina_To_MaxStamina()
+    {
+        var stats = new StatBlock(Money: 0, Health: 50, Stress: 50, FamilyBond: 50, Education: 50, Reputation: 50) { MaxStamina = 50, CurrentStamina = 5 };
+
+        var result = stats.ResetStamina();
+
+        result.CurrentStamina.Should().Be(50);
+    }
+
+    [Fact]
+    public void ApplyDelta_Preserves_Stamina_Fields_Untouched_By_The_Delta()
+    {
+        var stats = new StatBlock(Money: 0, Health: 50, Stress: 50, FamilyBond: 50, Education: 50, Reputation: 50) { MaxStamina = 50, CurrentStamina = 12 };
+
+        var result = stats.ApplyDelta(new StatDelta(Health: 5));
+
+        result.MaxStamina.Should().Be(50);
+        result.CurrentStamina.Should().Be(12);
+    }
+
     private static StatDelta DeltaFor(string statName, int value) => statName switch
     {
         nameof(StatBlock.Stress) => new StatDelta(Stress: value),

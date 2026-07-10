@@ -22,6 +22,7 @@ public sealed class LifecycleSystem
 
         state.Age++;
         state.CurrentYear++;
+        state.Stats = state.Stats.ResetStamina();
 
         string? milestoneMsg = null;
 
