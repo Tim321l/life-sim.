@@ -1,4 +1,5 @@
 using System.Text;
+using HKLifeSim.Core.Activities;
 using HKLifeSim.Core.Data;
 using HKLifeSim.Core.Domain;
 using HKLifeSim.Core.Events;
@@ -97,6 +98,8 @@ internal static class Runner
         }
 
         var events = LoadEvents(dataDirectory, era);
+        var activities = LoadActivities(dataDirectory);
+        var activityManager = new ActivityManager(activities);
         var chain = new GenerationChain(eras);
 
         var generationNumber = 0;
@@ -106,6 +109,7 @@ internal static class Runner
             var seed = options.Seed + generationNumber - 1;
             var engine = new EventEngine(events, era, seed);
             var lifecycle = new LifecycleSystem(seed);
+            var activityRandom = new Random(seed);
             var state = chain.StartNextGeneration(era, seed);
 
             Console.WriteLine();
@@ -121,6 +125,13 @@ internal static class Runner
                     : ReadChoiceFromConsole(evt);
 
                 engine.ApplyChoice(state, evt, choiceId);
+
+                if (!state.IsAlive)
+                {
+                    break;
+                }
+
+                RunActivityTurn(state, activityManager, era, options.Auto, activityRandom);
 
                 if (!state.IsAlive)
                 {
@@ -162,6 +173,103 @@ internal static class Runner
     {
         var files = era.EventPoolFiles.ToDictionary(f => f, f => File.ReadAllText(Path.Combine(dataDirectory, f)));
         return EventRepository.Load(files, [era]);
+    }
+
+    private static IReadOnlyList<Activity> LoadActivities(string dataDirectory)
+    {
+        var json = File.ReadAllText(Path.Combine(dataDirectory, "activities.json"));
+        return ActivityRepository.Load(json);
+    }
+
+    private static void RunActivityTurn(GameState state, ActivityManager activityManager, EraConfig era, bool auto, Random activityRandom)
+    {
+        while (state.IsAlive)
+        {
+            var available = activityManager.GetAvailableActivities(state);
+            if (available.Count == 0)
+            {
+                return;
+            }
+
+            string? chosenId;
+            if (auto)
+            {
+                // 50% chance to stop doing activities for this year, otherwise pick one at random.
+                if (activityRandom.Next(2) == 0)
+                {
+                    return;
+                }
+
+                chosenId = available[activityRandom.Next(available.Count)].Id;
+            }
+            else
+            {
+                chosenId = ReadActivityChoiceFromConsole(state, available);
+                if (chosenId is null)
+                {
+                    return;
+                }
+            }
+
+            var result = activityManager.ExecuteActivity(state, chosenId, era);
+            PrintActivityResult(available.First(a => a.Id == chosenId), result, state);
+
+            if (result != ActivityResult.Success)
+            {
+                return;
+            }
+        }
+    }
+
+    private static string? ReadActivityChoiceFromConsole(GameState state, IReadOnlyList<Activity> available)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"=== 活動 Activities (體力 Stamina {state.Stats.CurrentStamina}/{state.Stats.MaxStamina}) ===");
+        for (var i = 0; i < available.Count; i++)
+        {
+            var a = available[i];
+            Console.WriteLine($"{i + 1}. {a.Name} (體力 -{a.StaminaCost}, 金錢 -{a.MoneyCost})");
+        }
+
+        Console.WriteLine("0. 跳過 Skip");
+
+        while (true)
+        {
+            Console.Write("> ");
+            var input = Console.ReadLine();
+            if (int.TryParse(input, out var index))
+            {
+                if (index == 0)
+                {
+                    return null;
+                }
+
+                if (index >= 1 && index <= available.Count)
+                {
+                    return available[index - 1].Id;
+                }
+            }
+
+            Console.WriteLine("請輸入有效選項編號 / Enter a valid choice number.");
+        }
+    }
+
+    private static void PrintActivityResult(Activity activity, ActivityResult result, GameState state)
+    {
+        var message = result switch
+        {
+            ActivityResult.Success => $"✅ 完成活動：{activity.Name}",
+            ActivityResult.InsufficientStamina => $"⚠️ 體力不足，未能進行：{activity.Name}",
+            ActivityResult.InsufficientMoney => $"⚠️ 金錢不足，未能進行：{activity.Name}",
+            ActivityResult.ActivityNotFound => $"⚠️ 找不到活動：{activity.Name}",
+            _ => throw new ArgumentOutOfRangeException(nameof(result)),
+        };
+        Console.WriteLine(message);
+
+        if (!state.IsAlive)
+        {
+            Console.WriteLine("💀 活動期間不幸離世。");
+        }
     }
 
     private static void PrintTurn(GameState state, GameEvent evt)
