@@ -72,7 +72,9 @@ tests/
 | 3 | Multi-era pools + inflation scaling | ✅ Done |
 | 4 | Legacy system (multi-generation) | ✅ Done |
 | 5 | Avalonia desktop UI | ✅ Done |
+| 5.5 | Activity & stamina system (Core + CLI) | ✅ Done |
 | 6 | Blazor WASM web UI | ⬜ Not started |
+| 7 | Digivice character widget (Desktop + Web) | ⬜ Not started |
 
 ## Quality gates
 
