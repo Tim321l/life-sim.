@@ -13,6 +13,9 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
     private const int CellSize = 48;
     private const int IconCellSize = 16;
     private const int FallbackHappyDurationMs = 2000;
+    private const int EvolveFlashDurationMs = 800;
+    private const int EvolveFlashIntervalMs = 200;
+    private const int DeathFadeDurationMs = 800;
     private static readonly TimeSpan TickInterval = TimeSpan.FromMilliseconds(50);
 
     public static readonly StyledProperty<Stage> CurrentStageProperty =
@@ -34,6 +37,10 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
     private PlaybackPhase _phase = PlaybackPhase.Idle;
     private DateTime _phaseStartUtc = DateTime.UtcNow;
     private ActionDef? _currentActionDef;
+
+    // The stage actually being displayed right now, which lags CurrentStage during an
+    // Evolving/DeathFade transition; null until the first render establishes it.
+    private Stage? _renderedStage;
 
     public DigiviceView()
     {
@@ -112,6 +119,15 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
 
     private void OnAppearanceChanged()
     {
+        // Dead overrides everything immediately, interrupting any in-flight action/happy/evolve
+        // playback (§B: 死亡壓過一切).
+        if (CurrentStage == Stage.Tombstone && _renderedStage != Stage.Tombstone)
+        {
+            _phase = PlaybackPhase.DeathFade;
+            _phaseStartUtc = DateTime.UtcNow;
+            return;
+        }
+
         // Action/happy playback isn't interrupted by a mood/stage change mid-flight (§D: "action
         // 播放期間 mood 判定暫停"); it resumes reflecting the new appearance once that phase ends.
         if (_phase != PlaybackPhase.Idle)
@@ -119,6 +135,14 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
             return;
         }
 
+        if (_renderedStage.HasValue && _renderedStage != CurrentStage)
+        {
+            _phase = PlaybackPhase.Evolving;
+            _phaseStartUtc = DateTime.UtcNow;
+            return;
+        }
+
+        _renderedStage = CurrentStage;
         _phaseStartUtc = DateTime.UtcNow;
         RenderFrame();
     }
@@ -127,19 +151,36 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
 
     private void RenderFrame()
     {
-        if (CurrentStage == Stage.Tombstone)
+        var elapsedMs = (long)(DateTime.UtcNow - _phaseStartUtc).TotalMilliseconds;
+
+        if (_phase == PlaybackPhase.DeathFade)
+        {
+            RenderDeathFade(elapsedMs);
+            return;
+        }
+
+        if (_phase == PlaybackPhase.Evolving)
+        {
+            RenderEvolving(elapsedMs);
+            return;
+        }
+
+        if (_renderedStage is null)
+        {
+            _renderedStage = CurrentStage;
+        }
+
+        if (_renderedStage == Stage.Tombstone)
         {
             RenderTombstoneFrame();
             return;
         }
 
-        var stageKey = StageKeyFor(CurrentStage);
+        var stageKey = StageKeyFor(_renderedStage.Value);
         if (!_manifest.Stages.TryGetValue(stageKey, out var stageSheet))
         {
             return;
         }
-
-        var elapsedMs = (long)(DateTime.UtcNow - _phaseStartUtc).TotalMilliseconds;
 
         switch (_phase)
         {
@@ -152,6 +193,52 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
             default:
                 RenderIdle(stageSheet, elapsedMs);
                 break;
+        }
+    }
+
+    // Flashes the outgoing stage's sprite twice, then swaps to the new stage (§B: 進化演出：閃屏×2 再換 sprite).
+    private void RenderEvolving(long elapsedMs)
+    {
+        if (_renderedStage is { } stage && stage != Stage.Tombstone)
+        {
+            var stageKey = StageKeyFor(stage);
+            if (_manifest.Stages.TryGetValue(stageKey, out var stageSheet) && stageSheet.Poses.TryGetValue("stand", out var pose))
+            {
+                SetBaseFrame(stageSheet, "stand", pose, 0);
+            }
+        }
+
+        BaseImage.Opacity = elapsedMs / EvolveFlashIntervalMs % 2 == 0 ? 1.0 : 0.1;
+
+        if (elapsedMs >= EvolveFlashDurationMs)
+        {
+            BaseImage.Opacity = 1.0;
+            _renderedStage = CurrentStage;
+            _phase = PlaybackPhase.Idle;
+            _phaseStartUtc = DateTime.UtcNow;
+        }
+    }
+
+    private void RenderDeathFade(long elapsedMs)
+    {
+        if (_renderedStage is { } stage && stage != Stage.Tombstone)
+        {
+            var stageKey = StageKeyFor(stage);
+            if (_manifest.Stages.TryGetValue(stageKey, out var stageSheet) && stageSheet.Poses.TryGetValue("stand", out var pose))
+            {
+                SetBaseFrame(stageSheet, "stand", pose, 0);
+            }
+        }
+
+        var progress = Math.Min(1.0, elapsedMs / (double)DeathFadeDurationMs);
+        BaseImage.Opacity = 1.0 - progress;
+
+        if (elapsedMs >= DeathFadeDurationMs)
+        {
+            BaseImage.Opacity = 1.0;
+            _renderedStage = Stage.Tombstone;
+            _phase = PlaybackPhase.Idle;
+            _phaseStartUtc = DateTime.UtcNow;
         }
     }
 
@@ -325,5 +412,7 @@ internal sealed partial class DigiviceView : UserControl, IDisposable
         Idle,
         Action,
         Happy,
+        Evolving,
+        DeathFade,
     }
 }

@@ -6,7 +6,7 @@
     <div class="digivice-bezel">
         <div class="digivice-header">@HeaderText</div>
         <div class="digivice-screen">
-            <div class="digivice-sprite" style="@BaseStyle"></div>
+            <div class="digivice-sprite" style="@SpriteStyle"></div>
             @if (_iconVisible)
             {
                 <div class="digivice-icon" style="@IconStyle"></div>
@@ -24,11 +24,16 @@
     private const int CellSize = 48;
     private const int IconCellSize = 16;
     private const int FallbackHappyDurationMs = 2000;
+    private const int EvolveFlashDurationMs = 800;
+    private const int EvolveFlashIntervalMs = 200;
+    private const int DeathFadeDurationMs = 800;
     private const int SheetColumns = 3;
     private const int SheetRows = 5;
 
     private Stage _renderedStage;
     private Mood _renderedMood;
+    private bool _hasRenderedOnce;
+    private double _spriteOpacity = 1.0;
     private SpriteManifest? _manifest;
     private CancellationTokenSource? _timerCts;
     private PlaybackPhase _phase = PlaybackPhase.Idle;
@@ -47,6 +52,8 @@
 
     private string BaseStyle { get; set; } = string.Empty;
 
+    private string SpriteStyle => $"{BaseStyle}opacity:{_spriteOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture)};";
+
     private string IconStyle { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -55,6 +62,7 @@
         _manifest = SpriteManifestRepository.Load(json);
         _renderedStage = CurrentStage;
         _renderedMood = CurrentMood;
+        _hasRenderedOnce = true;
 
         _timerCts = new CancellationTokenSource();
         _ = RunTimerLoopAsync(_timerCts.Token);
@@ -62,14 +70,34 @@
 
     protected override void OnParametersSet()
     {
+        if (!_hasRenderedOnce)
+        {
+            return;
+        }
+
+        // Dead overrides everything immediately, interrupting any in-flight action/happy/evolve
+        // playback (§B: 死亡壓過一切).
+        if (CurrentStage == Stage.Tombstone && _renderedStage != Stage.Tombstone)
+        {
+            _phase = PlaybackPhase.DeathFade;
+            _phaseStartUtc = DateTime.UtcNow;
+            return;
+        }
+
         if (_phase != PlaybackPhase.Idle)
         {
             return;
         }
 
-        if (_renderedStage != CurrentStage || _renderedMood != CurrentMood)
+        if (_renderedStage != CurrentStage)
         {
-            _renderedStage = CurrentStage;
+            _phase = PlaybackPhase.Evolving;
+            _phaseStartUtc = DateTime.UtcNow;
+            return;
+        }
+
+        if (_renderedMood != CurrentMood)
+        {
             _renderedMood = CurrentMood;
             _phaseStartUtc = DateTime.UtcNow;
         }
@@ -117,6 +145,22 @@
             return;
         }
 
+        var elapsedMs = (long)(DateTime.UtcNow - _phaseStartUtc).TotalMilliseconds;
+
+        if (_phase == PlaybackPhase.DeathFade)
+        {
+            RenderDeathFade(elapsedMs);
+            return;
+        }
+
+        if (_phase == PlaybackPhase.Evolving)
+        {
+            RenderEvolving(elapsedMs);
+            return;
+        }
+
+        _spriteOpacity = 1.0;
+
         if (_renderedStage == Stage.Tombstone)
         {
             RenderTombstone();
@@ -129,8 +173,6 @@
             return;
         }
 
-        var elapsedMs = (long)(DateTime.UtcNow - _phaseStartUtc).TotalMilliseconds;
-
         switch (_phase)
         {
             case PlaybackPhase.Action when _currentActionDef is { } action:
@@ -142,6 +184,49 @@
             default:
                 RenderIdle(stageKey, stageSheet, elapsedMs);
                 break;
+        }
+    }
+
+    // Flashes the outgoing stage's sprite twice, then swaps to the new stage (§B: 進化演出：閃屏×2 再換 sprite).
+    private void RenderEvolving(long elapsedMs)
+    {
+        if (_renderedStage != Stage.Tombstone && _manifest!.Stages.TryGetValue(StageKeyFor(_renderedStage), out var stageSheet)
+            && stageSheet.Poses.TryGetValue("stand", out var pose))
+        {
+            BaseStyle = BuildBaseStyle(StageKeyFor(_renderedStage), pose, 0);
+            SetIconStyle(null, null, null);
+        }
+
+        _spriteOpacity = elapsedMs / EvolveFlashIntervalMs % 2 == 0 ? 1.0 : 0.1;
+
+        if (elapsedMs >= EvolveFlashDurationMs)
+        {
+            _spriteOpacity = 1.0;
+            _renderedStage = CurrentStage;
+            _renderedMood = CurrentMood;
+            _phase = PlaybackPhase.Idle;
+            _phaseStartUtc = DateTime.UtcNow;
+        }
+    }
+
+    private void RenderDeathFade(long elapsedMs)
+    {
+        if (_renderedStage != Stage.Tombstone && _manifest!.Stages.TryGetValue(StageKeyFor(_renderedStage), out var stageSheet)
+            && stageSheet.Poses.TryGetValue("stand", out var pose))
+        {
+            BaseStyle = BuildBaseStyle(StageKeyFor(_renderedStage), pose, 0);
+            SetIconStyle(null, null, null);
+        }
+
+        var progress = Math.Min(1.0, elapsedMs / (double)DeathFadeDurationMs);
+        _spriteOpacity = 1.0 - progress;
+
+        if (elapsedMs >= DeathFadeDurationMs)
+        {
+            _spriteOpacity = 1.0;
+            _renderedStage = Stage.Tombstone;
+            _phase = PlaybackPhase.Idle;
+            _phaseStartUtc = DateTime.UtcNow;
         }
     }
 
@@ -260,5 +345,7 @@
         Idle,
         Action,
         Happy,
+        Evolving,
+        DeathFade,
     }
 }
