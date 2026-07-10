@@ -61,6 +61,9 @@ public readonly record struct StatBlock(
 
     public StatBlock ResetStamina() => this with { CurrentStamina = MaxStamina };
 
+    public StatBlock SpendStamina(int cost) =>
+        this with { CurrentStamina = Math.Clamp(CurrentStamina - cost, 0, MaxStamina) };
+
     public bool IsFatal(out string cause)
     {
         if (Health <= 0)
