@@ -73,8 +73,21 @@ tests/
 | 4 | Legacy system (multi-generation) | ✅ Done |
 | 5 | Avalonia desktop UI | ✅ Done |
 | 5.5 | Activity & stamina system (Core + CLI) | ✅ Done |
-| 6 | Blazor WASM web UI | ⬜ Not started |
+| 6 | Blazor WASM web UI | ✅ Done (see note below) |
 | 7 | Digivice character widget (Desktop + Web) | ⬜ Not started |
+
+**Note on Phase 6**: Setup/Game/Obituary are all fully built (character creation,
+era selection, the full annual event loop, a 6-tab action dashboard, financial
+ledger, NPCs/children/careers, a live SVG radar chart, and `localStorage`-backed
+autosave with working resume-on-refresh). However, `HKLifeSim.Web`'s "active
+action" gameplay (career, hobbies, relationships, finances) is implemented
+directly in `GameSessionService.cs` rather than through `HKLifeSim.Core` — only
+the yearly random-event pipeline (`EventEngine`/`LifecycleSystem`/`LegacySystem`)
+goes through Core. This means Web and CLI/Desktop run two different rule sets
+for "active actions"; in particular, Web's own Activities/Hobbies tabs predate
+and do not use the Phase 5.5 `HKLifeSim.Core.Activities.ActivityManager`. This
+is a known, working design choice, not a defect — flagged here so it isn't
+mistaken for missing work in a future phase.
 
 ## Quality gates
 
