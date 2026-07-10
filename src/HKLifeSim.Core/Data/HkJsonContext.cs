@@ -3,6 +3,7 @@ using HKLifeSim.Core.Activities;
 using HKLifeSim.Core.Domain;
 using HKLifeSim.Core.Events;
 using HKLifeSim.Core.Persistence;
+using HKLifeSim.Core.Presentation;
 
 namespace HKLifeSim.Core.Data;
 
@@ -24,4 +25,9 @@ namespace HKLifeSim.Core.Data;
 [JsonSerializable(typeof(EventFile))]
 [JsonSerializable(typeof(Activity))]
 [JsonSerializable(typeof(ActivityFile))]
+[JsonSerializable(typeof(SpriteManifest))]
+[JsonSerializable(typeof(StageSheet))]
+[JsonSerializable(typeof(PoseDef))]
+[JsonSerializable(typeof(IconDef))]
+[JsonSerializable(typeof(ActionDef))]
 public sealed partial class HkJsonContext : JsonSerializerContext;
