@@ -1159,6 +1159,53 @@
       ]
     },
     {
+      "id": "hong_kong_pop_music_1980s",
+      "minAge": 14,
+      "maxAge": 35,
+      "weight": 35,
+      "category": "lifestyle",
+      "title": "廣東歌黃金盛世",
+      "body": "80年代係廣東歌嘅黃金時期，張國榮同梅艷芳紅透半邊天，街頭巷尾都播緊佢哋嘅歌。你想買卡式錄音帶支持偶像。",
+      "choices": [
+        {
+          "id": "buy_cassette",
+          "text": "用零用錢買一盒卡式帶狂聽",
+          "effects": { "money": -150, "stress": -6 }
+        },
+        {
+          "id": "attend_concert",
+          "text": "買飛去紅館聽現場演唱會",
+          "effects": { "money": -500, "stress": -10, "reputation": 4 }
+        },
+        {
+          "id": "listen_radio",
+          "text": "慳返啖氣，聽收音機廣播就算",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
+      "id": "home_ownership_scheme_1980s",
+      "minAge": 22,
+      "maxAge": 50,
+      "weight": 30,
+      "category": "lifestyle",
+      "title": "申請居者有其屋",
+      "body": "政府推行居屋計劃（Home Ownership Scheme），你可以用相對平嘅價錢買到自己嘅樓，脫離租屋或者木屋生活。",
+      "choices": [
+        {
+          "id": "apply_hos",
+          "text": "遞交申請表，搏抽中上車居屋",
+          "effects": { "money": -1000, "stress": 3, "reputation": 2 }
+        },
+        {
+          "id": "skip_hos",
+          "text": "繼續租屋，錢留嚟做生意",
+          "effects": { "stress": -1 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_1980s",
       "minAge": 0,
       "maxAge": 120,

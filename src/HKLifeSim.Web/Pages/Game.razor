@@ -76,7 +76,7 @@
     }
 
     <!-- Phase A: Exam Trivia Modal -->
-    @if (_showExamTrivia)
+    @if (_showExamTrivia && _selectedQuestions.Count >= 2)
     {
         <div class="event-overlay">
             <div class="glass-panel event-card" style="max-width: 600px; border-color: var(--reputation); box-shadow: 0 0 25px var(--reputation-glow);">
@@ -91,23 +91,23 @@
                 <div class="trivia-questions" style="text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
                     <!-- Question 1 -->
                     <div style="margin-bottom: 16px;">
-                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q1: @GetTriviaQuestion(1)</p>
+                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q1: @_selectedQuestions[0].QuestionText</p>
                         <select class="text-input" style="width: 100%; min-height:36px; padding:4px;" @bind="_triviaQ1Answer">
                             <option value="-1">-- 請選擇答案 --</option>
-                            <option value="0">@GetTriviaOption(1, 0)</option>
-                            <option value="1">@GetTriviaOption(1, 1)</option>
-                            <option value="2">@GetTriviaOption(1, 2)</option>
+                            <option value="0">@_selectedQuestions[0].Options[0]</option>
+                            <option value="1">@_selectedQuestions[0].Options[1]</option>
+                            <option value="2">@_selectedQuestions[0].Options[2]</option>
                         </select>
                     </div>
 
                     <!-- Question 2 -->
                     <div>
-                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q2: @GetTriviaQuestion(2)</p>
+                        <p style="font-weight: bold; margin-bottom: 6px; font-size:0.95rem;">Q2: @_selectedQuestions[1].QuestionText</p>
                         <select class="text-input" style="width: 100%; min-height:36px; padding:4px;" @bind="_triviaQ2Answer">
                             <option value="-1">-- 請選擇答案 --</option>
-                            <option value="0">@GetTriviaOption(2, 0)</option>
-                            <option value="1">@GetTriviaOption(2, 1)</option>
-                            <option value="2">@GetTriviaOption(2, 2)</option>
+                            <option value="0">@_selectedQuestions[1].Options[0]</option>
+                            <option value="1">@_selectedQuestions[1].Options[1]</option>
+                            <option value="2">@_selectedQuestions[1].Options[2]</option>
                         </select>
                     </div>
                 </div>
@@ -197,6 +197,7 @@
         <div class="game-layout">
             <!-- Left column: Profile & Stats info -->
             <div class="sidebar-panel">
+                <RadarChart Stats="Session.State.Stats" />
                 <div class="glass-panel profile-card">
                     <h3 class="section-title">👤 角色檔案 Profile</h3>
                     <div class="profile-name" style="margin-bottom:4px;">
@@ -1051,6 +1052,51 @@
     // Milestones Exam overlay state
     private string? _activeMilestone;
 
+    private class TriviaQuestion
+    {
+        public string QuestionText { get; set; } = "";
+        public string[] Options { get; set; } = Array.Empty<string>();
+        public int CorrectOptionIndex { get; set; }
+    }
+
+    private static readonly List<TriviaQuestion> SciencePool = new()
+    {
+        new() { QuestionText = "中學物理：萬有引力定律係由邊位科學家提出？", Options = new[] { "愛因斯坦 Albert Einstein", "牛頓 Isaac Newton", "伽利略 Galileo Galilei" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "中學化學：水分子 (Water) 嘅基本化學分子式係？", Options = new[] { "H2O", "CO2", "NaCl" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "中學生物：人體內負責帶氧氣嘅細胞係？", Options = new[] { "白血球", "血小板", "紅血球" }, CorrectOptionIndex = 2 },
+        new() { QuestionText = "中學物理：以下哪項是光速在真空中的近似值？", Options = new[] { "300,000 km/s", "150,000 km/s", "1,000 km/s" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "中學化學：元素週期表中，第一個元素是？", Options = new[] { "氦 Helium", "鋰 Lithium", "氫 Hydrogen" }, CorrectOptionIndex = 2 }
+    };
+
+    private static readonly List<TriviaQuestion> BusinessPool = new()
+    {
+        new() { QuestionText = "中學經濟：在供求定律中，當市場需求增加而供應不變時，均衡價格會？", Options = new[] { "上升 Rise", "下跌 Fall", "維持不變 Unchanged" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "中學會計：本金$10,000，年利率10%以複利計算，兩年後的本利和為？", Options = new[] { "12,000", "12,100", "11,000" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "中學經濟：通脹（Inflation）發生時，貨幣嘅購買力會？", Options = new[] { "下降 Decline", "上升 Increase", "不變 No change" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "中學會計：在借貸記帳法中，「資產」增加應該記在？", Options = new[] { "貸方 (Credit)", "借方 (Debit)", "損益表" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "中學企業：以下哪項不屬於市場營銷的「4P」組合？", Options = new[] { "產品 (Product)", "利潤 (Profit)", "價格 (Price)" }, CorrectOptionIndex = 1 }
+    };
+
+    private static readonly List<TriviaQuestion> ArtsPool = new()
+    {
+        new() { QuestionText = "中學歷史：清朝政府與英國簽署《南京條約》，香港島是在哪一年開埠？", Options = new[] { "1997 年", "1841 年", "1911 年" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "中學文學：三國演義中，「桃園三結義」是指劉備、關羽與哪位將領？", Options = new[] { "趙雲 Zhao Yun", "張飛 Zhang Fei", "諸葛亮 Zhuge Liang" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "中學歷史：秦始皇統一中國後，推行的貨幣是？", Options = new[] { "秦半兩", "五銖錢", "刀幣" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "中學文學：唐代著名「詩仙」是指哪位詩人？", Options = new[] { "杜甫", "白居易", "李白" }, CorrectOptionIndex = 2 },
+        new() { QuestionText = "中國歷史：中國歷史上唯一的正統女皇帝是？", Options = new[] { "慈禧太后", "武則天", "呂后" }, CorrectOptionIndex = 1 }
+    };
+
+    private static readonly List<TriviaQuestion> GeneralPool = new()
+    {
+        new() { QuestionText = "香港常識：香港特別行政區成立於哪一年？", Options = new[] { "1984 年", "1997 年", "2003 年" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "地理常識：香港地標「獅子山」座落於邊兩個地區之分界？", Options = new[] { "九龍與新界之間", "港島南部", "大嶼山及長洲" }, CorrectOptionIndex = 0 },
+        new() { QuestionText = "香港歷史：香港在二戰期間曾經歷「三年零八個月」的日佔時期，起點是哪一年？", Options = new[] { "1937 年", "1941 年", "1945 年" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "香港常識：香港現行的軌道交通大眾運輸系統（鐵路）簡稱是？", Options = new[] { "KCR", "MTR (地鐵)", "LRT" }, CorrectOptionIndex = 1 },
+        new() { QuestionText = "香港常識：被譽為香港「後花園」、擁有地質公園景觀的地區 is？", Options = new[] { "西貢 Sai Kung", "旺角 Mong Kok", "中環 Central" }, CorrectOptionIndex = 0 }
+    };
+
+    private List<TriviaQuestion> _selectedQuestions = new();
+
     // Exam Trivia States
     private bool _showExamTrivia = false;
     private int _triviaQ1Answer = -1;
@@ -1075,6 +1121,11 @@
         _actionLogs.Clear();
         
         CheckMilestone();
+
+        if (Session.State.Age == 17 && !Session.State.HasFlag("dropped_out"))
+        {
+            SelectRandomQuestions();
+        }
     }
 
     private void CheckMilestone()
@@ -1162,6 +1213,7 @@
         // If at age 17 and has not taken exam trivia questions, intercept to display it
         if (Session.State is not null && Session.State.Age == 17 && !Session.State.HasFlag("dropped_out") && !_showExamTrivia)
         {
+            SelectRandomQuestions();
             _showExamTrivia = true;
             _triviaQ1Answer = -1;
             _triviaQ2Answer = -1;
@@ -1194,7 +1246,7 @@
             return;
         }
 
-        var correctCount = (_triviaQ1Answer == 0 ? 1 : 0) + (_triviaQ2Answer == 0 ? 1 : 0);
+        var correctCount = (_triviaQ1Answer == _selectedQuestions[0].CorrectOptionIndex ? 1 : 0) + (_triviaQ2Answer == _selectedQuestions[1].CorrectOptionIndex ? 1 : 0);
         if (correctCount == 1)
         {
             Session.State?.SetFlag("exam_bonus_1");
@@ -1553,91 +1605,19 @@
         };
     }
 
-    // Trivia Questions Methods
-    private string GetTriviaQuestion(int qIndex)
+    private void SelectRandomQuestions()
     {
-        if (Session.State is null) return string.Empty;
-        var isScience = Session.State.HasFlag("stream_science");
-        var isBusiness = Session.State.HasFlag("stream_business");
-        var isArts = Session.State.HasFlag("stream_arts");
+        _selectedQuestions.Clear();
+        if (Session.State is null) return;
 
-        if (isScience)
-        {
-            return qIndex == 1 
-                ? "中學物理：萬有引力定律係由邊位科學家提出？" 
-                : "中學化學：水分子 (Water) 嘅基本化學分子式係？";
-        }
-        else if (isBusiness)
-        {
-            return qIndex == 1
-                ? "中學經濟：在供求定律中，當市場需求增加而供應不變時，均衡價格會？"
-                : "中學會計：本金$10,000，年利率10%以複利計算，兩年後的本利和為？";
-        }
-        else if (isArts)
-        {
-            return qIndex == 1
-                ? "中學歷史：清朝政府與英國簽署《南京條約》，香港島是在哪一年開埠？"
-                : "中學文學：三國演義中，「桃園三結義」是指劉備、關羽與哪位將領？";
-        }
-        else
-        {
-            return qIndex == 1
-                ? "香港常識：香港特別行政區成立於哪一年？"
-                : "地理常識：香港地標「獅子山」座落於邊兩個地區之分界？";
-        }
-    }
+        var pool = Session.State.HasFlag("stream_science") ? SciencePool :
+                   Session.State.HasFlag("stream_business") ? BusinessPool :
+                   Session.State.HasFlag("stream_arts") ? ArtsPool : GeneralPool;
 
-    private string GetTriviaOption(int qIndex, int optionIndex)
-    {
-        if (Session.State is null) return string.Empty;
-        var isScience = Session.State.HasFlag("stream_science");
-        var isBusiness = Session.State.HasFlag("stream_business");
-        var isArts = Session.State.HasFlag("stream_arts");
-
-        if (isScience)
-        {
-            if (qIndex == 1)
-            {
-                return optionIndex switch { 0 => "牛頓 Isaac Newton", 1 => "愛因斯坦 Albert Einstein", _ => "伽利略 Galileo Galilei" };
-            }
-            else
-            {
-                return optionIndex switch { 0 => "H2O", 1 => "CO2", _ => "NaCl" };
-            }
-        }
-        else if (isBusiness)
-        {
-            if (qIndex == 1)
-            {
-                return optionIndex switch { 0 => "上升 Rise", 1 => "下跌 Fall", _ => "維持不變 Unchanged" };
-            }
-            else
-            {
-                return optionIndex switch { 0 => "$12,100", 1 => "$12,000", _ => "$11,000" };
-            }
-        }
-        else if (isArts)
-        {
-            if (qIndex == 1)
-            {
-                return optionIndex switch { 0 => "1841 年", 1 => "1911 年", _ => "1997 年" };
-            }
-            else
-            {
-                return optionIndex switch { 0 => "張飛 Zhang Fei", 1 => "趙雲 Zhao Yun", _ => "諸葛亮 Zhuge Liang" };
-            }
-        }
-        else
-        {
-            if (qIndex == 1)
-            {
-                return optionIndex switch { 0 => "1997 年", 1 => "1984 年", _ => "2003 年" };
-            }
-            else
-            {
-                return optionIndex switch { 0 => "九龍與新界之間", 1 => "港島南部", _ => "大嶼山及長洲" };
-            }
-        }
+        var rand = new Random();
+        var indices = Enumerable.Range(0, pool.Count).OrderBy(x => rand.Next()).Take(2).ToList();
+        _selectedQuestions.Add(pool[indices[0]]);
+        _selectedQuestions.Add(pool[indices[1]]);
     }
 
     private void OnSessionChanged() => InvokeAsync(StateHasChanged);

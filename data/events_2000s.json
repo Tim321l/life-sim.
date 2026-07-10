@@ -1184,6 +1184,59 @@
       ]
     },
     {
+      "id": "SARS_quarantine_2000s",
+      "minAge": 12,
+      "maxAge": 18,
+      "weight": 80,
+      "isUnique": true,
+      "category": "lifestyle",
+      "title": "非典型肺炎 (SARS) 停課",
+      "body": "2003年香港爆發SARS疫情，全港學校宣佈停課。街上個個戴口罩，人心惶惶，你要留喺屋企度過呢段日子。",
+      "choices": [
+        {
+          "id": "study_at_home",
+          "text": "乖乖留喺屋企溫書備考",
+          "effects": { "education": 12, "stress": 4 }
+        },
+        {
+          "id": "play_games_quarantine",
+          "text": "大打ICQ同電腦遊戲放鬆",
+          "effects": { "stress": -8, "health": -1 }
+        },
+        {
+          "id": "help_family_clean",
+          "text": "幫屋企人用漂白水徹底消毒",
+          "effects": { "familyBond": 8, "health": 4, "stress": 2 }
+        }
+      ]
+    },
+    {
+      "id": "forum_culture_2000s",
+      "minAge": 15,
+      "maxAge": 30,
+      "weight": 35,
+      "category": "lifestyle",
+      "title": "香港論壇文化",
+      "body": "寬頻網絡普及，你開始玩「香港高登論壇」同「Uwants」。今日你見到一個關於社會熱話嘅帖子，打算回覆。",
+      "choices": [
+        {
+          "id": "post_funny_story",
+          "text": "寫一篇搞笑創意的潮文分享",
+          "effects": { "reputation": 6, "stress": -3 }
+        },
+        {
+          "id": "debate_users",
+          "text": "同持相反意見嘅網民瘋狂網絡論戰",
+          "effects": { "stress": 8, "reputation": -2 }
+        },
+        {
+          "id": "lurk_quietly",
+          "text": "只做「CD-ROM」只睇不回帖",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_2000s",
       "minAge": 0,
       "maxAge": 120,

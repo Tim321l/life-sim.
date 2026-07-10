@@ -1144,6 +1144,60 @@
       ]
     },
     {
+      "id": "typhoon_wanda_1960s",
+      "minAge": 10,
+      "maxAge": 60,
+      "weight": 80,
+      "isUnique": true,
+      "category": "lifestyle",
+      "title": "颱風溫黛襲港",
+      "body": "1962年，強烈颱風「溫黛」正面襲港，天文台掛起十號風球。風勢狂暴，你住嘅木屋區或者徙置區開始漏水甚至搖搖欲墜，情況危急！",
+      "choices": [
+        {
+          "id": "reinforce_hut",
+          "text": "冒風雨出外加固木屋結構",
+          "effects": { "health": -15, "stress": 12, "familyBond": 10 }
+        },
+        {
+          "id": "evacuate_shelter",
+          "text": "即刻帶屋企人去政府避風中心",
+          "effects": { "money": -200, "health": 4, "stress": 6 }
+        },
+        {
+          "id": "stay_and_pray",
+          "text": "留喺屋內祈求平安",
+          "effects": { "stress": 15, "health": -5 }
+        }
+      ]
+    },
+    {
+      "id": "water_rationing_expanded_1960s",
+      "minAge": 8,
+      "maxAge": 50,
+      "weight": 75,
+      "isUnique": true,
+      "category": "lifestyle",
+      "title": "制水：四天供水一次",
+      "body": "1963年香港大旱，政府實施嚴厲制水措施，每四天只供水四小時。街坊個個拎起紅A膠桶，喺街喉排長龍等攞水。",
+      "choices": [
+        {
+          "id": "queue_midnight",
+          "text": "凌晨三點起身去排隊攞水",
+          "effects": { "health": -5, "familyBond": 8, "stress": 4 }
+        },
+        {
+          "id": "buy_water",
+          "text": "向非法水商高價買水",
+          "effects": { "money": -300, "stress": -2 }
+        },
+        {
+          "id": "save_water",
+          "text": "極力節約，幾日唔洗頭唔沖涼",
+          "effects": { "health": -8, "stress": 6 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_1960s",
       "minAge": 0,
       "maxAge": 120,

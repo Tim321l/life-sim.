@@ -1359,6 +1359,58 @@
       ]
     },
     {
+      "id": "virtual_currency_scam_2024plus",
+      "minAge": 19,
+      "maxAge": 45,
+      "weight": 35,
+      "category": "lifestyle",
+      "title": "虛擬貨幣投資邀請",
+      "body": "中學老友突然PM你，吹噓佢喺一個新興虛擬貨幣平台賺咗大錢，仲邀請你一齊入金「發達」。你直覺覺得好似近年單JPEX詐騙案……",
+      "choices": [
+        {
+          "id": "invest_jpex",
+          "text": "心存僥倖，入金$10,000博一鋪",
+          "effects": { "money": -10000, "stress": 12, "reputation": -5 }
+        },
+        {
+          "id": "reject_and_warn",
+          "text": "拒絕佢，並勸佢小心比人呃",
+          "effects": { "stress": 1, "familyBond": 3 }
+        },
+        {
+          "id": "report_scam",
+          "text": "直接報警並向網絡安全處舉報",
+          "effects": { "reputation": 5, "stress": 2 }
+        }
+      ]
+    },
+    {
+      "id": "tea_restaurant_actor_2024plus",
+      "minAge": 12,
+      "maxAge": 80,
+      "weight": 30,
+      "category": "lifestyle",
+      "title": "茶餐廳巧遇明星",
+      "body": "你喺旺角茶餐廳食緊菠蘿油，隔離位突然坐咗個熟面口嘅TVB/ViuTV明星。佢一邊食蛋撻一邊睇劇本。",
+      "choices": [
+        {
+          "id": "ask_for_photo",
+          "text": "上前禮貌要求合照同簽名",
+          "effects": { "reputation": 4, "stress": -2 }
+        },
+        {
+          "id": "pay_his_bill",
+          "text": "靜悄悄幫佢埋單（請佢食菠蘿油）",
+          "effects": { "money": -80, "reputation": 6, "stress": -1 }
+        },
+        {
+          "id": "ignore_him",
+          "text": "唔打擾人，專心食自己嘅沙爹牛肉麵",
+          "effects": { "stress": -2 }
+        }
+      ]
+    },
+    {
       "id": "generic_daily_life_2024plus",
       "minAge": 0,
       "maxAge": 120,
