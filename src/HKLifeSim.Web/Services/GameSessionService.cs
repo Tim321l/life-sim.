@@ -239,6 +239,21 @@ internal sealed class GameSessionService
         Changed?.Invoke();
         try
         {
+            // Friendships neglected all year (no chat/hangout/compliment/gift/favor) quietly cool off.
+            foreach (var npc in GetNpcFriends())
+            {
+                var interacted = State.FlagsSet.Any(f =>
+                    f.StartsWith($"action_hangout_{npc.Key}_", StringComparison.Ordinal) ||
+                    f.StartsWith($"action_chat_{npc.Key}_", StringComparison.Ordinal) ||
+                    f.StartsWith($"action_compliment_{npc.Key}_", StringComparison.Ordinal) ||
+                    f.StartsWith($"action_npcgift_{npc.Key}_", StringComparison.Ordinal) ||
+                    f == $"action_favor_{npc.Key}");
+                if (!interacted)
+                {
+                    DecrementSkillLevel($"npcbond_{npc.Key}");
+                }
+            }
+
             // Clear resolved flag and all active action limits/history flags
             State.FlagsSet.Remove("event_resolved_for_year");
             var actionFlags = State.FlagsSet.Where(f => f.StartsWith("action_", StringComparison.Ordinal)).ToList();
@@ -403,6 +418,25 @@ internal sealed class GameSessionService
         return next;
     }
 
+    private void DecrementSkillLevel(string skillKey)
+    {
+        if (State is null) return;
+        var prefix = $"skill_{skillKey}_";
+        var current = GetSkillLevel(skillKey);
+        if (current <= 0) return;
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith(prefix, StringComparison.Ordinal));
+        if (flag is not null)
+        {
+            State.FlagsSet.Remove(flag);
+        }
+
+        var next = current - 1;
+        if (next > 0)
+        {
+            State.SetFlag($"{prefix}{next}");
+        }
+    }
+
     private static string SkillTierLabel(int practiceCount) => practiceCount switch
     {
         >= 30 => "宗師級 Master",
@@ -473,11 +507,34 @@ internal sealed class GameSessionService
             })];
     }
 
+    private static readonly Dictionary<string, string[]> EmployerPools = new(StringComparer.Ordinal)
+    {
+        ["factory"] = ["山寨廠", "紡織廠", "玩具廠"],
+        ["trading"] = ["南北行", "出入口貿易行"],
+        ["fishing"] = ["漁船船隊", "海鮮批發行"],
+        ["tailor"] = ["洋服裁縫舖", "唐裝老字號"],
+        ["manufacturing"] = ["電子零件廠", "塑膠製品廠"],
+        ["finance"] = ["投資銀行", "證券行", "保險公司"],
+        ["civil_service"] = ["政府部門", "醫院管理局", "教育局"],
+        ["retail"] = ["連鎖超市", "百貨公司", "屋邨便利店"],
+        ["tech"] = ["科技新創公司", "跨國IT企業", "遊戲開發商"],
+        ["logistics"] = ["物流公司", "貨運速遞行"],
+        ["creative"] = ["廣告公司", "設計工作室", "媒體製作公司"],
+        ["gig"] = ["外賣平台", "網約車平台"],
+    };
+
     public string? GetChosenCareerTrack()
     {
         if (State is null) return null;
         var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("career_track_", StringComparison.Ordinal));
         return flag?["career_track_".Length..];
+    }
+
+    public string? GetCurrentEmployer()
+    {
+        if (State is null) return null;
+        var flag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("employer_", StringComparison.Ordinal));
+        return flag?["employer_".Length..];
     }
 
     public async Task<string> ChooseCareerAsync(string trackId)
@@ -487,22 +544,45 @@ internal sealed class GameSessionService
         if (State.Age < 18) return "你未夠18歲，未夠班出嚟做嘢！";
         if (!CareerTrackInfo.TryGetValue(trackId, out var info)) return "呢一行喺呢個年代未有出現！";
         if (State.Stats.Education < info.EduRequirement) return $"你嘅學歷未夠（需要學歷 ≥ {info.EduRequirement}），未夠班入行！";
+        if (State.HasFlag("action_job_apply")) return "今年已經去過面試啦，聽日再嚟啦！";
+
+        State.SetFlag("action_job_apply");
+        var interviewChance = Math.Min(85, 40 + (State.Stats.Education / 5) + (State.Stats.Reputation / 5));
+        if (Random.Shared.Next(100) >= interviewChance)
+        {
+            var before = State.Stats;
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 4));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"😔 你去面試做「{info.Name}」，可惜表現未夠好，冇獲聘用。聽日再試下！";
+        }
+
+        var employerPool = EmployerPools.TryGetValue(trackId, out var pool) ? pool : ["公司"];
+        var employer = employerPool[Random.Shared.Next(employerPool.Length)];
 
         var current = GetChosenCareerTrack();
-        var before = State.Stats;
+        var beforeStats = State.Stats;
         if (current is not null)
         {
             State.FlagsSet.Remove($"career_track_{current}");
             State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 5));
         }
 
+        var currentEmployerFlag = State.FlagsSet.FirstOrDefault(f => f.StartsWith("employer_", StringComparison.Ordinal));
+        if (currentEmployerFlag is not null)
+        {
+            State.FlagsSet.Remove(currentEmployerFlag);
+        }
+
         State.SetFlag($"career_track_{trackId}");
-        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        State.SetFlag($"employer_{employer}");
+        StatDeltaToast = BuildDeltaToast(beforeStats, State.Stats);
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
         return current is null
-            ? $"🎉 你正式入行做「{info.Name}」，展開你嘅職業生涯！"
-            : $"🔄 你轉咗行，而家做緊「{info.Name}」。轉工總要適應一下。";
+            ? $"🎉 面試成功！你獲{employer}聘用做「{info.Name}」，展開你嘅職業生涯！"
+            : $"🔄 面試成功！你轉咗行，而家喺{employer}做緊「{info.Name}」。轉工總要適應一下。";
     }
 
     public int GetCareerLevel()
@@ -539,10 +619,12 @@ internal sealed class GameSessionService
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
 
+        var employer = GetCurrentEmployer();
+        var employerText = employer is not null ? $"喺{employer}" : string.Empty;
         var promoted = level is 5 or 10 or 20;
         return promoted
-            ? $"🎊 你獲得晉升，而家係「{info.Name}」嘅{rank}！人工都加咗唔少。(獲得 ${pay:N0})"
-            : $"💼 你返緊「{info.Name}」({rank})，努力工作為生活打拼。(獲得 ${pay:N0})";
+            ? $"🎊 你{employerText}獲得晉升，而家係「{info.Name}」嘅{rank}！人工都加咗唔少。(獲得 ${pay:N0})"
+            : $"💼 你{employerText}返緊「{info.Name}」({rank})，努力工作為生活打拼。(獲得 ${pay:N0})";
     }
 
     public async Task<string> WorkHardAsync()
@@ -959,12 +1041,56 @@ internal sealed class GameSessionService
 
     // --- Hobbies ---
 
+    // --- Instrument ownership: buying a real instrument makes practice cheaper and busking better ---
+
+    private static readonly Dictionary<string, (string Name, int Price, int HappinessBonus)> InstrumentCatalog = new(StringComparer.Ordinal)
+    {
+        ["piano"] = ("鋼琴 (Yamaha)", 25000, 12),
+        ["violin"] = ("小提琴", 8000, 10),
+        ["guitar"] = ("結他 (Gibson)", 5000, 15),
+        ["erhu"] = ("二胡", 2000, 8),
+        ["kazoo"] = ("口哨笛 (Kazoo)", 50, 5),
+        ["flute"] = ("長笛 (Pearl Flute)", 15000, 11),
+    };
+
+    public IReadOnlyList<(string Id, string Name, int Price, int HappinessBonus, bool Owned)> GetInstrumentCatalog()
+    {
+        if (State is null) return [];
+        return [.. InstrumentCatalog.Select(kv => (Id: kv.Key, kv.Value.Name, kv.Value.Price, kv.Value.HappinessBonus, Owned: State.HasFlag($"owns_instrument_{kv.Key}")))];
+    }
+
+    public IReadOnlyList<string> GetOwnedInstrumentNames()
+    {
+        if (State is null) return [];
+        return [.. InstrumentCatalog.Where(kv => State.HasFlag($"owns_instrument_{kv.Key}")).Select(kv => kv.Value.Name)];
+    }
+
+    public async Task<string> BuyInstrumentAsync(string instrumentId)
+    {
+        ArgumentNullException.ThrowIfNull(instrumentId);
+        if (State is null) return "無效狀態";
+        if (!InstrumentCatalog.TryGetValue(instrumentId, out var info)) return "搵唔到呢件樂器！";
+        if (State.HasFlag($"owns_instrument_{instrumentId}")) return "你已經有呢件樂器啦！";
+
+        var cost = ScaleMoney(-info.Price);
+        if (State.Stats.Money < Math.Abs(cost)) return $"唔夠錢買{info.Name}！";
+
+        var before = State.Stats;
+        State.SetFlag($"owns_instrument_{instrumentId}");
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, Stress: -info.HappinessBonus / 2));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎼 你買咗一件{info.Name}返屋企！(花費 ${Math.Abs(cost):N0})";
+    }
+
     public async Task<string> PracticeMusicAsync()
     {
         if (State is null) return "無效狀態";
         if (GetActionFlagCount("action_music_") >= 2) return "今年已經夾咗好多次Band，休息下把口先！";
 
-        var cost = ScaleMoney(-300);
+        var ownsInstrument = InstrumentCatalog.Keys.Any(id => State.HasFlag($"owns_instrument_{id}"));
+        var cost = ownsInstrument ? 0 : ScaleMoney(-300);
         if (State.Stats.Money < Math.Abs(cost)) return "唔夠錢交音樂堂學費！";
 
         var before = State.Stats;
@@ -988,7 +1114,43 @@ internal sealed class GameSessionService
         StatDeltaToast = BuildDeltaToast(before, State.Stats);
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
-        return $"🎹 你上咗堂音樂課，練習吉他/鋼琴，好療癒！(花費 ${Math.Abs(cost):N0}，音樂技能：{tier})";
+        return ownsInstrument
+            ? $"🎹 你用返屋企嘅樂器自學練習，唔使錢又有進步！(音樂技能：{tier})"
+            : $"🎹 你上咗堂音樂課，練習吉他/鋼琴，好療癒！(花費 ${Math.Abs(cost):N0}，音樂技能：{tier})";
+    }
+
+    public bool CanEnterMusicCompetition() => GetSkillLevel("music") >= 80;
+
+    public async Task<string> MusicCompetitionAsync()
+    {
+        if (State is null) return "無效狀態";
+        if (!CanEnterMusicCompetition()) return "你嘅音樂熟練度未夠80，未夠班參賽！";
+        if (State.HasFlag("action_music_competition")) return "今年已經參加過音樂節比賽啦！";
+
+        var entryFee = ScaleMoney(-5000);
+        if (State.Stats.Money < Math.Abs(entryFee)) return "唔夠錢俾報名費！";
+
+        var before = State.Stats;
+        State.SetFlag("action_music_competition");
+        var level = GetSkillLevel("music");
+        var winChance = Math.Min(75, 30 + level);
+
+        if (Random.Shared.Next(100) < winChance)
+        {
+            var prize = ScaleMoney(30000);
+            State.SetFlag("music_champion");
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: entryFee + prize, Reputation: 30));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"🏆 你喺音樂節比賽奪得冠軍！全場掌聲雷動！(獲得獎金 ${prize:N0})";
+        }
+
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: entryFee, Reputation: -20, Stress: 25));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return "😔 你喺音樂節比賽落敗，冇拎到名次，有啲失落。";
     }
 
     public async Task<string> PlaySportsAsync()
@@ -1218,7 +1380,9 @@ internal sealed class GameSessionService
     private static readonly string[] NpcTraits =
         ["開朗", "搞笑", "老實", "型格", "醒目", "熱心", "文靜", "好動"];
 
-    public IReadOnlyList<(string Key, string Name, string Trait)> GetNpcFriends()
+    internal sealed record NpcInfo(string Key, string Name, string Trait, string Category, int Looks, int Intelligence, int Craziness);
+
+    public IReadOnlyList<NpcInfo> GetNpcFriends()
     {
         if (State is null) return [];
 
@@ -1227,8 +1391,19 @@ internal sealed class GameSessionService
             .Select(f => f["npc_friend_".Length..])
             .Select(rest =>
             {
-                var idx = rest.LastIndexOf('_');
-                return idx < 0 ? (Key: rest, Name: rest, Trait: string.Empty) : (Key: rest, Name: rest[..idx], Trait: rest[(idx + 1)..]);
+                var parts = rest.Split('_');
+                if (parts.Length < 6)
+                {
+                    // Legacy format from before profile stats were added: name_trait only.
+                    var legacyKey = parts.Length >= 2 ? $"{parts[0]}_{parts[1]}" : rest;
+                    return new NpcInfo(legacyKey, parts.ElementAtOrDefault(0) ?? rest, parts.ElementAtOrDefault(1) ?? string.Empty, "朋友", 50, 50, 50);
+                }
+
+                var key = $"{parts[0]}_{parts[1]}";
+                _ = int.TryParse(parts[3], out var looks);
+                _ = int.TryParse(parts[4], out var intelligence);
+                _ = int.TryParse(parts[5], out var craziness);
+                return new NpcInfo(key, parts[0], parts[1], parts[2], looks, intelligence, craziness);
             })];
     }
 
@@ -1263,7 +1438,11 @@ internal sealed class GameSessionService
         }
 
         var pick = candidates[Random.Shared.Next(candidates.Count)];
-        State.SetFlag($"npc_friend_{pick}");
+        var category = State.Age < 18 ? "同學" : IsWorkerForNpcCategory() ? "同事" : "朋友";
+        var looks = Random.Shared.Next(20, 100);
+        var intelligence = Random.Shared.Next(20, 100);
+        var craziness = Random.Shared.Next(0, 100);
+        State.SetFlag($"npc_friend_{pick}_{category}_{looks}_{intelligence}_{craziness}");
         State.SetFlag("has_npc_friend");
         var parts = pick.Split('_');
 
@@ -1272,8 +1451,10 @@ internal sealed class GameSessionService
         StatDeltaToast = BuildDeltaToast(beforeStats, State.Stats);
         await AutosaveAsync().ConfigureAwait(false);
         Changed?.Invoke();
-        return $"🎉 你識到咗一個新朋友：{parts[0]}（性格：{parts[1]}），大家傾得幾投緣！";
+        return $"🎉 你識到咗一個新朋友：{parts[0]}（性格：{parts[1]}，{category}），大家傾得幾投緣！";
     }
+
+    private bool IsWorkerForNpcCategory() => State is not null && GetChosenCareerTrack() is not null;
 
     public int GetFriendshipLevel(string npcKey) => GetSkillLevel($"npcbond_{npcKey}");
 
@@ -1284,11 +1465,90 @@ internal sealed class GameSessionService
         _ => "相識 Acquaintance"
     };
 
+    public static int FriendshipPercent(int level) => Math.Min(100, 20 + (level * 8));
+
+    private bool NpcExists(string npcKey) => State is not null && State.FlagsSet.Any(f => f.StartsWith($"npc_friend_{npcKey}_", StringComparison.Ordinal));
+
+    public async Task<string> ChatWithNpcAsync(string npcKey)
+    {
+        ArgumentNullException.ThrowIfNull(npcKey);
+        if (State is null) return "無效狀態";
+        if (!NpcExists(npcKey)) return "你同呢位仲未係朋友！";
+
+        var chatPrefix = $"action_chat_{npcKey}_";
+        if (GetActionFlagCount(chatPrefix) >= 3) return "今年已經傾夠偈啦！";
+
+        var before = State.Stats;
+        AddActionFlag(chatPrefix);
+        var level = IncrementSkillLevel($"npcbond_{npcKey}");
+        var name = npcKey.Split('_')[0];
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: -2, FamilyBond: 1));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"💬 你同{name}傾咗幾句偈，心情輕鬆咗少少。(friendship：{FriendshipTierLabel(level)})";
+    }
+
+    public async Task<string> ComplimentNpcAsync(string npcKey)
+    {
+        ArgumentNullException.ThrowIfNull(npcKey);
+        if (State is null) return "無效狀態";
+        if (!NpcExists(npcKey)) return "你同呢位仲未係朋友！";
+
+        var complimentPrefix = $"action_compliment_{npcKey}_";
+        if (GetActionFlagCount(complimentPrefix) >= 2) return "今年已經讚夠佢啦，再讚就假啦！";
+
+        var npc = GetNpcFriends().FirstOrDefault(n => n.Key == npcKey);
+        var before = State.Stats;
+        AddActionFlag(complimentPrefix);
+        var name = npcKey.Split('_')[0];
+
+        var backfireChance = npc is not null ? npc.Craziness / 4 : 15;
+        if (Random.Shared.Next(100) < backfireChance)
+        {
+            State.Stats = State.Stats.ApplyDelta(new StatDelta(Stress: 3));
+            StatDeltaToast = BuildDeltaToast(before, State.Stats);
+            await AutosaveAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+            return $"😬 你讚{name}，點知佢覺得你講嘢好怪，氣氛有啲尷尬。";
+        }
+
+        var level = IncrementSkillLevel($"npcbond_{npcKey}");
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(FamilyBond: 3, Stress: -1));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"😊 你真心讚咗{name}幾句，佢聽到好開心。(friendship：{FriendshipTierLabel(level)})";
+    }
+
+    public async Task<string> GiftNpcAsync(string npcKey)
+    {
+        ArgumentNullException.ThrowIfNull(npcKey);
+        if (State is null) return "無效狀態";
+        if (!NpcExists(npcKey)) return "你同呢位仲未係朋友！";
+
+        var giftPrefix = $"action_npcgift_{npcKey}_";
+        if (GetActionFlagCount(giftPrefix) >= 1) return "今年已經送過禮物俾佢啦！";
+
+        var cost = ScaleMoney(-400);
+        if (State.Stats.Money < Math.Abs(cost)) return "唔夠錢買禮物！";
+
+        var before = State.Stats;
+        AddActionFlag(giftPrefix);
+        var level = IncrementSkillLevel($"npcbond_{npcKey}");
+        var name = npcKey.Split('_')[0];
+        State.Stats = State.Stats.ApplyDelta(new StatDelta(Money: cost, FamilyBond: 8, Stress: -3));
+        StatDeltaToast = BuildDeltaToast(before, State.Stats);
+        await AutosaveAsync().ConfigureAwait(false);
+        Changed?.Invoke();
+        return $"🎁 你買咗份禮物俾{name}，佢好感動！(花費 ${Math.Abs(cost):N0}，friendship：{FriendshipTierLabel(level)})";
+    }
+
     public async Task<string> HangOutWithNpcAsync(string npcKey)
     {
         ArgumentNullException.ThrowIfNull(npcKey);
         if (State is null) return "無效狀態";
-        if (!State.HasFlag($"npc_friend_{npcKey}")) return "你同呢位仲未係朋友！";
+        if (!NpcExists(npcKey)) return "你同呢位仲未係朋友！";
 
         var hangoutPrefix = $"action_hangout_{npcKey}_";
         if (GetActionFlagCount(hangoutPrefix) >= 2) return "今年同呢位朋友已經玩夠喇，返去搵下其他人啦！";
@@ -1335,7 +1595,7 @@ internal sealed class GameSessionService
     {
         ArgumentNullException.ThrowIfNull(npcKey);
         if (State is null) return "無效狀態";
-        if (!State.HasFlag($"npc_friend_{npcKey}")) return "你同呢位仲未係朋友！";
+        if (!NpcExists(npcKey)) return "你同呢位仲未係朋友！";
         if (GetFriendshipLevel(npcKey) < 6) return "你哋交情未夠深，未係開口問呢啲嘢嘅時候。";
         if (State.HasFlag($"action_favor_{npcKey}")) return "今年已經問過佢幫手啦，唔好搞到段友誼太緊張！";
 

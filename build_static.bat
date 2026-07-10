@@ -18,11 +18,8 @@ echo.
 echo Option A: Vercel (easiest and works out-of-the-box)
 echo 1. Create a free account on Vercel (https://vercel.com).
 echo 2. Link your GitHub account and import your repository.
-echo 3. In Vercel Project settings:
-echo    - Build Command: dotnet publish src/HKLifeSim.Web/HKLifeSim.Web.csproj -c Release -o publish
-echo    - Output Directory: publish/wwwroot
-echo    - Framework Preset: Other
-echo 4. Click deploy. Vercel will build and host your game with free custom SSL!
+echo 3. Vercel will automatically build and host the app using the root `vercel.json`!
+echo    (It installs .NET 10, builds the app, and configures routing automatically).
 echo.
 echo Option B: GitHub Pages
 echo 1. Push the contents of the "publish/wwwroot" folder to your gh-pages branch.

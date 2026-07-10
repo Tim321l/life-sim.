@@ -408,17 +408,21 @@
                                 {
                                     <div class="action-card" style="grid-column: span 2;">
                                         <div class="action-card-header">
-                                            <span class="action-card-title">選擇職業 Choose Career</span>
+                                            <span class="action-card-title">求職面試 Job Applications</span>
                                         </div>
-                                        <p class="action-card-desc">揀返份長工，你嘅學歷同DSE成績會決定邊行入到，人工亦會隨年資同晉升上升。</p>
+                                        <p class="action-card-desc">揀返份長工去面試，你嘅學歷同聲望會影響面試成功率；成功先至正式入職。</p>
                                         <div class="country-selector">
                                             @foreach (var track in Session.GetAvailableCareerTracks())
                                             {
-                                                <button type="button" class="primary-button" style="min-height:36px;" disabled="@(!track.Eligible || Session.IsBusy)" @onclick="() => ChooseCareerAsync(track.Id)" title="@(track.Eligible ? "" : $"需要學歷 ≥ {track.EduRequirement}")">
+                                                <button type="button" class="primary-button" style="min-height:36px;" disabled="@(!track.Eligible || Session.State.HasFlag("action_job_apply") || Session.IsBusy)" @onclick="() => ChooseCareerAsync(track.Id)" title="@(track.Eligible ? "" : $"需要學歷 ≥ {track.EduRequirement}")">
                                                     @track.Name @(track.Eligible ? "" : $"(需學歷≥{track.EduRequirement})")
                                                 </button>
                                             }
                                         </div>
+                                        @if (Session.State.HasFlag("action_job_apply"))
+                                        {
+                                            <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:8px;">今年已經面試過，下一年先可以再試！</p>
+                                        }
                                     </div>
                                 }
                                 else
@@ -426,12 +430,13 @@
                                     var trackInfo = Session.GetAvailableCareerTracks().FirstOrDefault(t => t.Id == chosenTrack);
                                     var careerLevel = Session.GetCareerLevel();
                                     var careerRank = HKLifeSim.Web.Services.GameSessionService.CareerRankLabel(careerLevel);
+                                    var employer = Session.GetCurrentEmployer();
                                     <div class="action-card" style="grid-column: span 2;">
                                         <div class="action-card-header">
                                             <span class="action-card-title">💼 @(trackInfo.Name ?? chosenTrack)</span>
                                             <span class="action-card-limit">@careerRank (Lv.@careerLevel)</span>
                                         </div>
-                                        <p class="action-card-desc">返工搵真銀，年資同表現愈高，人工同晉升機會愈大。</p>
+                                        <p class="action-card-desc">@(employer is not null ? $"僱主：{employer} · " : "")返工搵真銀，年資同表現愈高，人工同晉升機會愈大。</p>
                                         <p class="action-card-effects">聲望 +3 · 壓力 +5 · 金錢 (隨年資遞增)</p>
                                         <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_career_work") || Session.IsBusy)" @onclick="GoToCareerJobAsync">💼 返工 Go to Work</button>
                                         <button type="button" class="primary-button secondary-btn" style="width:100%; min-height:32px; margin-top:6px; font-size:0.8rem;" disabled="@Session.IsBusy" @onclick="() => _showCareerSwitcher = !_showCareerSwitcher">🔄 轉行 Switch Career</button>
@@ -440,7 +445,7 @@
                                             <div class="country-selector" style="margin-top:8px;">
                                                 @foreach (var track in Session.GetAvailableCareerTracks().Where(t => t.Id != chosenTrack))
                                                 {
-                                                    <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(!track.Eligible || Session.IsBusy)" @onclick="() => ChooseCareerAsync(track.Id)">
+                                                    <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(!track.Eligible || Session.State.HasFlag("action_job_apply") || Session.IsBusy)" @onclick="() => ChooseCareerAsync(track.Id)">
                                                         @track.Name @(track.Eligible ? "" : $"(需學歷≥{track.EduRequirement})")
                                                     </button>
                                                 }
@@ -619,29 +624,51 @@
                             <button type="button" class="primary-button" style="width:100%; min-height:44px;" disabled="@(Session.State.HasFlag("action_make_friend") || Session.IsBusy)" @onclick="MakeNpcFriendAsync">🤝 識新朋友 Make a Friend</button>
                         </div>
 
-                        <div class="action-grid">
-                            @foreach (var npc in Session.GetNpcFriends())
-                            {
-                                var hangoutPrefix = $"action_hangout_{npc.Key}_";
-                                var hangoutCount = Session.State.FlagsSet.Count(f => f.StartsWith(hangoutPrefix, StringComparison.Ordinal));
-                                var remainingHangouts = 2 - hangoutCount;
-                                var friendshipLevel = Session.GetFriendshipLevel(npc.Key);
-                                var friendshipTier = HKLifeSim.Web.Services.GameSessionService.FriendshipTierLabel(friendshipLevel);
-                                <div class="action-card">
-                                    <div class="action-card-header">
-                                        <span class="action-card-title">🧑 @npc.Name</span>
-                                        <span class="action-card-limit">@remainingHangouts/2</span>
+                        @foreach (var categoryGroup in Session.GetNpcFriends().GroupBy(n => n.Category))
+                        {
+                            <h5 style="color:var(--text-secondary); font-size:0.85rem; margin: 12px 0 6px;">@categoryGroup.Key (@categoryGroup.Count())</h5>
+                            <div class="action-grid">
+                                @foreach (var npc in categoryGroup)
+                                {
+                                    var hangoutPrefix = $"action_hangout_{npc.Key}_";
+                                    var hangoutCount = Session.State.FlagsSet.Count(f => f.StartsWith(hangoutPrefix, StringComparison.Ordinal));
+                                    var remainingHangouts = 2 - hangoutCount;
+                                    var friendshipLevel = Session.GetFriendshipLevel(npc.Key);
+                                    var friendshipTier = HKLifeSim.Web.Services.GameSessionService.FriendshipTierLabel(friendshipLevel);
+                                    var friendshipPercent = HKLifeSim.Web.Services.GameSessionService.FriendshipPercent(friendshipLevel);
+                                    <div class="action-card">
+                                        <div class="action-card-header">
+                                            <span class="action-card-title">🧑 @npc.Name</span>
+                                            <span class="action-card-limit">@friendshipPercent%</span>
+                                        </div>
+                                        <p class="action-card-desc">性格：@npc.Trait · 交情：@friendshipTier</p>
+                                        <div style="background:rgba(255,255,255,0.1); border-radius:4px; height:6px; margin-bottom:10px; overflow:hidden;">
+                                            <div style="background:var(--accent); height:100%; width:@(friendshipPercent)%;"></div>
+                                        </div>
+                                        <div class="country-selector">
+                                            <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(remainingHangouts <= 0 || Session.IsBusy)" @onclick="() => HangOutWithNpcAsync(npc.Key)">💬 相處</button>
+                                            <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(Session.State.FlagsSet.Count(f => f.StartsWith($"action_chat_{npc.Key}_", StringComparison.Ordinal)) >= 3 || Session.IsBusy)" @onclick="() => ChatWithNpcAsync(npc.Key)">🗨️ 傾計</button>
+                                            <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(Session.State.FlagsSet.Count(f => f.StartsWith($"action_compliment_{npc.Key}_", StringComparison.Ordinal)) >= 2 || Session.IsBusy)" @onclick="() => ComplimentNpcAsync(npc.Key)">👍 讚美</button>
+                                            <button type="button" class="primary-button" style="min-height:32px; font-size:0.8rem;" disabled="@(Session.State.FlagsSet.Count(f => f.StartsWith($"action_npcgift_{npc.Key}_", StringComparison.Ordinal)) >= 1 || Session.State.Stats.Money < Session.ScaleMoney(400) || Session.IsBusy)" @onclick="() => GiftNpcAsync(npc.Key)">🎁 禮物</button>
+                                            <button type="button" class="primary-button secondary-btn" style="min-height:32px; font-size:0.8rem;" @onclick="() => _expandedNpcProfile = _expandedNpcProfile == npc.Key ? null : npc.Key">ℹ️ 資料</button>
+                                        </div>
+                                        @if (friendshipLevel >= 6)
+                                        {
+                                            <button type="button" class="primary-button action-button" style="margin-top:8px; background: rgba(255,193,7,0.2); border-color: #ffc107;" disabled="@(Session.State.HasFlag($"action_favor_{npc.Key}") || Session.IsBusy)" @onclick="() => AskFriendForFavorAsync(npc.Key)">🙏 求助 Ask Favor</button>
+                                        }
+                                        @if (_expandedNpcProfile == npc.Key)
+                                        {
+                                            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.8rem; color:var(--text-secondary);">
+                                                <div>👁️ 外貌 Looks: @npc.Looks</div>
+                                                <div>🧠 智力 Intelligence: @npc.Intelligence</div>
+                                                <div>🎲 瘋狂度 Craziness: @npc.Craziness</div>
+                                                <div>🏷️ 類別 Category: @npc.Category</div>
+                                            </div>
+                                        }
                                     </div>
-                                    <p class="action-card-desc">性格：@npc.Trait · 交情：@friendshipTier</p>
-                                    <p class="action-card-effects">親情 +6 · 壓力 -4 (偶爾有驚喜或小插曲)</p>
-                                    <button type="button" class="primary-button action-button" disabled="@(remainingHangouts <= 0 || Session.IsBusy)" @onclick="() => HangOutWithNpcAsync(npc.Key)">💬 傾偈 Hang Out</button>
-                                    @if (friendshipLevel >= 6)
-                                    {
-                                        <button type="button" class="primary-button action-button" style="margin-top:8px; background: rgba(255,193,7,0.2); border-color: #ffc107;" disabled="@(Session.State.HasFlag($"action_favor_{npc.Key}") || Session.IsBusy)" @onclick="() => AskFriendForFavorAsync(npc.Key)">🙏 求助 Ask Favor</button>
-                                    }
-                                </div>
-                            }
-                        </div>
+                                }
+                            </div>
+                        }
 
                         <!-- Friends list comparison -->
                         <h4 class="section-title" style="margin-top: 24px;">👫 好友系統 (P2P Share Code)</h4>
@@ -842,12 +869,44 @@
                                     @{
                                         var musicCount = Session.State.FlagsSet.Count(f => f.StartsWith("action_music_", StringComparison.Ordinal));
                                         var remainingMusic = 2 - musicCount;
+                                        var ownedInstruments = Session.GetOwnedInstrumentNames();
                                     }
                                     <span class="action-card-limit">@remainingMusic/2</span>
                                 </div>
-                                <p class="action-card-desc">上堂學吉他/鋼琴，或者夾Band練歌，間中仲有機會街頭表演賺外快！</p>
-                                <p class="action-card-effects cost">聲望 +2 · 壓力 -6 · 金錢 -$@FormatAmount(Session.ScaleMoney(300)) (有機會街頭表演賺小費)</p>
-                                <button type="button" class="primary-button action-button" disabled="@(remainingMusic <= 0 || Session.State.Stats.Money < Session.ScaleMoney(300) || Session.IsBusy)" @onclick="PracticeMusicAsync">🎸 玩音樂 Music</button>
+                                <p class="action-card-desc">
+                                    上堂學吉他/鋼琴，或者夾Band練歌，間中仲有機會街頭表演賺外快！
+                                    @(ownedInstruments.Count > 0 ? $"擁有樂器：{string.Join("、", ownedInstruments)}（自學免費）" : "")
+                                </p>
+                                <p class="action-card-effects cost">聲望 +2 · 壓力 -6 · 金錢 @(ownedInstruments.Count > 0 ? "免費 (已有樂器)" : $"-${FormatAmount(Session.ScaleMoney(300))}") (有機會街頭表演賺小費)</p>
+                                <button type="button" class="primary-button action-button" disabled="@(remainingMusic <= 0 || (ownedInstruments.Count == 0 && Session.State.Stats.Money < Session.ScaleMoney(300)) || Session.IsBusy)" @onclick="PracticeMusicAsync">🎸 玩音樂 Music</button>
+                            </div>
+
+                            @if (Session.CanEnterMusicCompetition())
+                            {
+                                <div class="action-card" style="background: rgba(255,193,7,0.08); border-color: #ffc107;">
+                                    <div class="action-card-header">
+                                        <span class="action-card-title">🏆 音樂節比賽 Music Competition</span>
+                                        <span class="action-card-limit">熟練度80+解鎖</span>
+                                    </div>
+                                    <p class="action-card-desc">你嘅音樂熟練度已經好高，可以參加音樂節比賽爭奪冠軍！</p>
+                                    <p class="action-card-effects cost">報名費 -$@FormatAmount(Session.ScaleMoney(5000)) · 贏：聲望+30 獎金$30,000 · 輸：聲望-20 壓力+25</p>
+                                    <button type="button" class="primary-button action-button" disabled="@(Session.State.HasFlag("action_music_competition") || Session.State.Stats.Money < Session.ScaleMoney(5000) || Session.IsBusy)" @onclick="MusicCompetitionAsync">🏆 參賽 Compete</button>
+                                </div>
+                            }
+
+                            <div class="action-card" style="grid-column: span 2;">
+                                <div class="action-card-header">
+                                    <span class="action-card-title">🎻 樂器店 Instrument Shop</span>
+                                </div>
+                                <p class="action-card-desc">買件屬於自己嘅樂器，之後練習就唔使再俾學費！</p>
+                                <div class="country-selector">
+                                    @foreach (var instrument in Session.GetInstrumentCatalog())
+                                    {
+                                        <button type="button" class="primary-button" style="min-height:36px; font-size:0.8rem;" disabled="@(instrument.Owned || Session.State.Stats.Money < Session.ScaleMoney(instrument.Price) || Session.IsBusy)" @onclick="() => BuyInstrumentAsync(instrument.Id)">
+                                            @(instrument.Owned ? "✅ " : "")@instrument.Name $@FormatAmount(Session.ScaleMoney(instrument.Price))
+                                        </button>
+                                    }
+                                </div>
                             </div>
 
                             <div class="action-card">
@@ -983,6 +1042,7 @@
     private List<string> _actionLogs = [];
     private string? _actionFeedback;
     private bool _showCareerSwitcher;
+    private string? _expandedNpcProfile;
 
     // Friend Share System Fields
     private string _shareCodeInput = string.Empty;
@@ -1324,6 +1384,18 @@
         AddLog(_actionFeedback);
     }
 
+    private async Task BuyInstrumentAsync(string instrumentId)
+    {
+        _actionFeedback = await Session.BuyInstrumentAsync(instrumentId);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task MusicCompetitionAsync()
+    {
+        _actionFeedback = await Session.MusicCompetitionAsync();
+        AddLog(_actionFeedback);
+    }
+
     private async Task PlaySportsAsync()
     {
         _actionFeedback = await Session.PlaySportsAsync();
@@ -1383,6 +1455,24 @@
     private async Task HangOutWithNpcAsync(string npcKey)
     {
         _actionFeedback = await Session.HangOutWithNpcAsync(npcKey);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task ChatWithNpcAsync(string npcKey)
+    {
+        _actionFeedback = await Session.ChatWithNpcAsync(npcKey);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task ComplimentNpcAsync(string npcKey)
+    {
+        _actionFeedback = await Session.ComplimentNpcAsync(npcKey);
+        AddLog(_actionFeedback);
+    }
+
+    private async Task GiftNpcAsync(string npcKey)
+    {
+        _actionFeedback = await Session.GiftNpcAsync(npcKey);
         AddLog(_actionFeedback);
     }
 
